@@ -1,4 +1,4 @@
-module iso
+module github.com/Speakerkfm/iso/pkg/proto
 
 go 1.16
 
