@@ -1,10 +1,10 @@
-package pb
+package proto
 
 import (
 	"github.com/Speakerkfm/iso/pkg/models"
 
-	"iso/pb/service_b"
-	"iso/pb/service_c"
+	"github.com/Speakerkfm/iso/pkg/proto/pb/service_b"
+	"github.com/Speakerkfm/iso/pkg/proto/pb/service_c"
 )
 
 var Services = []*models.ProtoService{
