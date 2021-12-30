@@ -1,4 +1,4 @@
-module github.com/Speakerkfm/iso/models
+module github.com/Speakerkfm/iso/pkg/models
 
 go 1.16
 
