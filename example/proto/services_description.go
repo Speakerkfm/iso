@@ -3,8 +3,8 @@ package proto
 import (
 	"github.com/Speakerkfm/iso/pkg/models"
 
-	"github.com/Speakerkfm/iso/pkg/proto/pb/service_b"
-	"github.com/Speakerkfm/iso/pkg/proto/pb/service_c"
+	"github.com/Speakerkfm/iso/example/proto/pb/service_b"
+	"github.com/Speakerkfm/iso/example/proto/pb/service_c"
 )
 
 var Services = []*models.ProtoService{
