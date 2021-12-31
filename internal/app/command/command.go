@@ -10,7 +10,7 @@ import (
 
 type Generator interface {
 	GenerateConfig() ([]byte, error)
-	GenerateProtoPlugin(svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error)
+	GenerateProtoPlugin(moduleName string, svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error)
 }
 
 type FileFetcher interface {
@@ -25,19 +25,26 @@ type ProtoParser interface {
 	Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error)
 }
 
+type Golang interface {
+	CreateModule(modName string) error
+	BuildPlugin(path, buildFile string) error
+}
+
 type Command struct {
 	gen         Generator
 	fileFetcher FileFetcher
 	protoc      Protoc
 	protoParser ProtoParser
+	golang      Golang
 }
 
-func New(g Generator, ff FileFetcher, pc Protoc, pp ProtoParser) *Command {
+func New(g Generator, ff FileFetcher, pc Protoc, pp ProtoParser, golang Golang) *Command {
 	return &Command{
 		gen:         g,
 		fileFetcher: ff,
 		protoc:      pc,
 		protoParser: pp,
+		golang:      golang,
 	}
 }
 

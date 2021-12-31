@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
@@ -17,11 +18,12 @@ func (g *Generator) GenerateConfig() ([]byte, error) {
 	return []byte(configTemplate), nil
 }
 
-func (g *Generator) GenerateProtoPlugin(svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error) {
+func (g *Generator) GenerateProtoPlugin(moduleName string, svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error) {
 	protoPlugin := models.ProtoPlugin{
-		ModuleName: "iso/proto",
+		ModuleName: moduleName,
 	}
 	for _, svc := range svcDesc {
+		protoPlugin.Imports = append(protoPlugin.Imports, fmt.Sprintf("%s \"%s/pb/%s\"", svc.PkgName, protoPlugin.ModuleName, svc.PkgName))
 		protoPlugin.ProtoServices = append(protoPlugin.ProtoServices, svc)
 	}
 

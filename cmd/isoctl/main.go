@@ -6,6 +6,7 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/app/command"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/cobra"
+	"github.com/Speakerkfm/iso/internal/app/command/adapter/golang"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/protoc"
 	"github.com/Speakerkfm/iso/internal/pkg/fetcher"
 	"github.com/Speakerkfm/iso/internal/pkg/generator"
@@ -17,8 +18,9 @@ func main() {
 	ff := fetcher.New()
 	pc := protoc.New()
 	pp := proto_parser.New()
+	glng := golang.New()
 
-	cmd := command.New(g, ff, pc, pp)
+	cmd := command.New(g, ff, pc, pp, glng)
 
 	cobraCmd := cobra.New(cmd)
 

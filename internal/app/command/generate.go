@@ -41,12 +41,23 @@ func (c *Command) Generate(path string) {
 		handleError(err)
 	}
 
-	protoPluginData, err := c.gen.GenerateProtoPlugin(svcDesc)
+	moduleName := "example/proto"
+	protoPluginData, err := c.gen.GenerateProtoPlugin(moduleName, svcDesc)
 	if err != nil {
 		handleError(err)
 	}
 
 	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", path, projectDir, protoPluginName), protoPluginData, fs.ModePerm); err != nil {
+		handleError(err)
+		return
+	}
+
+	if err := c.golang.CreateModule(moduleName); err != nil {
+		handleError(err)
+		return
+	}
+
+	if err := c.golang.BuildPlugin("example/proto", protoPluginName); err != nil {
 		handleError(err)
 		return
 	}
@@ -120,6 +131,7 @@ func (c *Command) processProtoFiles(ctx context.Context, protoFiles []*models.Pr
 
 		for _, svcDesc := range serviceDescriptions {
 			svcDesc.ProtoPath = protoFile.Path
+			svcDesc.PkgName = protoFile.PkgName
 			res[svcDesc.Name] = svcDesc
 		}
 	}

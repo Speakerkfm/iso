@@ -2,6 +2,7 @@ package models
 
 type ProtoPlugin struct {
 	ModuleName    string
+	Imports       []string
 	ProtoServices []*ProtoServiceDesc
 }
 
@@ -18,6 +19,7 @@ type ProtoServiceDesc struct {
 	Name      string
 	Methods   []*ProtoMethodDesc
 	ProtoPath string
+	PkgName   string
 }
 
 type ProtoMethodDesc struct {

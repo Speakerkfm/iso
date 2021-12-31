@@ -9,15 +9,12 @@ var configTemplate = `external_dependencies:
     grpc:
       - /Users/usanin/Documents/go_projects/test_cmd/pb/service_b.proto`
 
-var implTemplate = template.Must(template.New("impl").Parse(`
-package main
+var implTemplate = template.Must(template.New("impl").Parse(`package main
 
 import (
 	"github.com/Speakerkfm/iso/pkg/models"
 
-	"{{ .ModuleName | printf "%s/pb/service_b\n" }}"
-	"iso/proto/pb/service_b"
-	"iso/proto/pb/service_c"
+	{{ range $i := .Imports }}{{ $i | printf "%s\n" }}{{ end }}
 )
 
 var ServiceProvider serviceProvider
@@ -26,28 +23,21 @@ type serviceProvider struct{}
 
 func (sp serviceProvider) GetList() []*models.ProtoService {
 	return []*models.ProtoService{
+		{{ range $svc := .ProtoServices }}
 		{
-			Name: "UserService",
+			Name: "{{ $svc.Name }}",
 			Methods: []models.ProtoMethod{
+				{{ range $method := $svc.Methods }}
 				{
-					Name:           "GetUser",
-					RequestStruct:  &service_b.GetUserRequest{},
-					ResponseStruct: &service_b.GetUserResponse{},
+					Name:           "{{ $method.Name }}",
+					RequestStruct:  &{{ $svc.PkgName }}.{{ $method.RequestType }}{},
+					ResponseStruct: &{{ $svc.PkgName }}.{{ $method.ResponseType }}{},
 				},
+				{{ end }}
 			},
-			ProtoPath: "pb/service_b.proto",
+			ProtoPath: "{{ $svc.ProtoPath }}",
 		},
-		{
-			Name: "PhoneService",
-			Methods: []models.ProtoMethod{
-				{
-					Name:           "CheckPhone",
-					RequestStruct:  &service_c.CheckPhoneRequest{},
-					ResponseStruct: &service_c.CheckPhoneResponse{},
-				},
-			},
-			ProtoPath: "pb/service_c.proto",
-		},
+		{{ end }}
 	}
 }
 `))
