@@ -9,8 +9,8 @@ import (
 )
 
 type Generator interface {
-	GenerateConfig() ([]byte, error)
-	GenerateProtoPlugin(moduleName string, svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error)
+	GenerateConfigData() ([]byte, error)
+	GenerateProtoPluginData(protoPlugin models.ProtoPlugin) ([]byte, error)
 }
 
 type FileFetcher interface {
@@ -18,7 +18,7 @@ type FileFetcher interface {
 }
 
 type Protoc interface {
-	Process(protoFile *models.ProtoFile) error
+	Process(wd string, protoFile *models.ProtoFile) error
 }
 
 type ProtoParser interface {
@@ -26,8 +26,8 @@ type ProtoParser interface {
 }
 
 type Golang interface {
-	CreateModule(modName string) error
-	BuildPlugin(path, buildFile string) error
+	CreateModule(wd, modName string) error
+	BuildPlugin(wd, buildFile string) error
 }
 
 type Command struct {

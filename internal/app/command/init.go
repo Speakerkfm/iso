@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -10,12 +11,11 @@ import (
 const (
 	defaultPath = "."
 
-	projectDir     = "proto"
 	configFileName = "config.yaml"
 )
 
-func (c *Command) Init(path string) {
-	configData, err := c.gen.GenerateConfig()
+func (c *Command) Init(ctx context.Context, path string) {
+	configData, err := c.gen.GenerateConfigData()
 	if err != nil {
 		handleError(err)
 		return
@@ -25,12 +25,7 @@ func (c *Command) Init(path string) {
 		path = defaultPath
 	}
 
-	if err := os.Mkdir(fmt.Sprintf("%s/%s", path, projectDir), fs.ModePerm); err != nil {
-		handleError(err)
-		return
-	}
-
-	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", path, projectDir, configFileName), configData, fs.ModePerm); err != nil {
+	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", path, configFileName), configData, fs.ModePerm); err != nil {
 		handleError(err)
 		return
 	}

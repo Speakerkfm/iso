@@ -23,7 +23,7 @@ type serviceProvider interface {
 }
 
 func main() {
-	plug, err := plugin.Open("example/proto/struct.so")
+	plug, err := plugin.Open("struct.so")
 	if err != nil {
 		panic(err)
 	}

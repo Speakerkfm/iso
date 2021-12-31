@@ -9,66 +9,68 @@ import (
 	"path/filepath"
 	"strings"
 
+	uuid "github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
 const (
-	protoPluginName = "struct.go"
+	protoPluginFile = "struct.go"
+	protoPluginName = "iso_proto"
 )
 
-func (c *Command) Generate(path string) {
-	ctx := context.Background()
-	workDir := fmt.Sprintf("%s/%s/pb", path, projectDir)
-
-	spec, err := c.loadConfig(path)
+func (c *Command) Generate(ctx context.Context, configPath string) {
+	fmt.Fprintln(os.Stdout, "Loading config...")
+	spec, err := c.loadConfig(configPath)
 	if err != nil {
 		handleError(err)
 	}
 
-	protoFiles, err := c.processConfig(spec, workDir)
+	protoFiles, err := c.processConfig(spec)
 	if err != nil {
 		handleError(err)
 	}
 
-	if err := os.MkdirAll(workDir, fs.ModePerm); err != nil {
+	wd := fmt.Sprintf("%s%s", os.TempDir(), uuid.NewV4().String())
+	if err := os.MkdirAll(wd, fs.ModePerm); err != nil {
 		handleError(err)
 	}
 
-	svcDesc, err := c.processProtoFiles(ctx, protoFiles, workDir)
+	fmt.Fprintln(os.Stdout, "Processing proto files...")
+	protoPlugin, err := c.processProtoFiles(ctx, wd, protoFiles)
 	if err != nil {
 		handleError(err)
 	}
 
-	moduleName := "example/proto"
-	protoPluginData, err := c.gen.GenerateProtoPlugin(moduleName, svcDesc)
+	protoPluginData, err := c.gen.GenerateProtoPluginData(protoPlugin)
 	if err != nil {
 		handleError(err)
 	}
 
-	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", path, projectDir, protoPluginName), protoPluginData, fs.ModePerm); err != nil {
+	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", wd, protoPluginFile), protoPluginData, fs.ModePerm); err != nil {
 		handleError(err)
 		return
 	}
 
-	if err := c.golang.CreateModule(moduleName); err != nil {
+	if err := c.golang.CreateModule(wd, protoPluginName); err != nil {
 		handleError(err)
 		return
 	}
 
-	if err := c.golang.BuildPlugin("example/proto", protoPluginName); err != nil {
+	fmt.Fprintln(os.Stdout, "Building proto plugin...")
+	if err := c.golang.BuildPlugin(wd, protoPluginFile); err != nil {
 		handleError(err)
 		return
 	}
 
-	fmt.Fprintln(os.Stdout, "Project generated")
+	fmt.Fprintln(os.Stdout, "Proto plugin generated")
 }
 
 func (c *Command) loadConfig(path string) (models.Config, error) {
 	spec := models.Config{}
 
-	fin, err := os.Open(fmt.Sprintf("%s/%s/%s", path, projectDir, configFileName))
+	fin, err := os.Open(path)
 	if err != nil {
 		return models.Config{}, err
 	}
@@ -81,7 +83,7 @@ func (c *Command) loadConfig(path string) (models.Config, error) {
 	return spec, nil
 }
 
-func (c *Command) processConfig(spec models.Config, workDir string) ([]*models.ProtoFile, error) {
+func (c *Command) processConfig(spec models.Config) ([]*models.ProtoFile, error) {
 	var protoFiles []*models.ProtoFile
 
 	for _, dep := range spec.ExternalDependencies {
@@ -92,7 +94,7 @@ func (c *Command) processConfig(spec models.Config, workDir string) ([]*models.P
 				Name:         fileName,
 				PkgName:      pkgName,
 				OriginalPath: protoPath,
-				Path:         fmt.Sprintf("%s/%s/%s", workDir, pkgName, fileName),
+				Path:         fmt.Sprintf("%s/%s", pkgName, fileName),
 			})
 		}
 	}
@@ -100,41 +102,52 @@ func (c *Command) processConfig(spec models.Config, workDir string) ([]*models.P
 	return protoFiles, nil
 }
 
-func (c *Command) processProtoFiles(ctx context.Context, protoFiles []*models.ProtoFile, workDir string) (map[string]*models.ProtoServiceDesc, error) {
-	res := make(map[string]*models.ProtoServiceDesc)
+func (c *Command) processProtoFiles(ctx context.Context, wd string, protoFiles []*models.ProtoFile) (models.ProtoPlugin, error) {
+	var err error
+	protoPlugin := models.ProtoPlugin{
+		ModuleName: protoPluginName,
+	}
+
+	processedServices := make(map[string]struct{})
 
 	for _, protoFile := range protoFiles {
-		protoData, err := c.fileFetcher.FetchFile(ctx, protoFile.OriginalPath)
+		protoFile.RawData, err = c.fileFetcher.FetchFile(ctx, protoFile.OriginalPath)
 		if err != nil {
-			return nil, err
+			return models.ProtoPlugin{}, err
 		}
-		protoFile.RawData = protoData
 
-		protoDir := fmt.Sprintf("%s/%s", workDir, protoFile.PkgName)
-
+		protoDir := fmt.Sprintf("%s/%s", wd, protoFile.PkgName)
 		if err := os.MkdirAll(protoDir, fs.ModePerm); err != nil {
-			handleError(err)
+			return models.ProtoPlugin{}, err
 		}
 
-		if err := ioutil.WriteFile(protoFile.Path, protoData, fs.ModePerm); err != nil {
-			return nil, err
+		if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", wd, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
+			return models.ProtoPlugin{}, err
 		}
 
-		if err := c.protoc.Process(protoFile); err != nil {
-			return nil, err
+		if err := c.protoc.Process(wd, protoFile); err != nil {
+			return models.ProtoPlugin{}, err
 		}
 
 		serviceDescriptions, err := c.protoParser.Parse(protoFile.RawData)
 		if err != nil {
-			return nil, err
+			return models.ProtoPlugin{}, err
 		}
 
 		for _, svcDesc := range serviceDescriptions {
+			if _, isProcessed := processedServices[svcDesc.Name]; isProcessed {
+				continue
+			}
+
 			svcDesc.ProtoPath = protoFile.Path
 			svcDesc.PkgName = protoFile.PkgName
-			res[svcDesc.Name] = svcDesc
+
+			protoPlugin.Imports = append(protoPlugin.Imports, fmt.Sprintf("%s \"%s/%s\"", svcDesc.PkgName, protoPlugin.ModuleName, svcDesc.PkgName))
+			protoPlugin.ProtoServices = append(protoPlugin.ProtoServices, svcDesc)
+
+			processedServices[svcDesc.Name] = struct{}{}
 		}
 	}
 
-	return res, nil
+	return protoPlugin, nil
 }

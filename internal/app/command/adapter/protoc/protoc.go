@@ -1,6 +1,7 @@
 package protoc
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
@@ -13,8 +14,13 @@ func New() *Protoc {
 	return &Protoc{}
 }
 
-func (p *Protoc) Process(protoFile *models.ProtoFile) error {
+func (p *Protoc) Process(wd string, protoFile *models.ProtoFile) error {
 	cmd := exec.Command("protoc", "--go_out=.", "--go_opt=paths=source_relative", protoFile.Path)
+	cmd.Dir = wd
 
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("fail to use protoc for file %s: %w", protoFile.Name, err)
+	}
+
+	return nil
 }

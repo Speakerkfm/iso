@@ -1,6 +1,8 @@
 package cobra
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/Speakerkfm/iso/internal/app/command"
@@ -23,7 +25,8 @@ func handleRoot(c *command.Command) *cobra.Command {
 		Short: "Iso is a tool for grpc mocking",
 		Long:  `...`,
 		Run: func(cmd *cobra.Command, args []string) {
-			c.Root()
+			ctx := context.Background()
+			c.Root(ctx)
 		},
 	}
 }
@@ -39,7 +42,8 @@ func handleInit(c *command.Command) *cobra.Command {
 				path = args[0]
 			}
 
-			c.Init(path)
+			ctx := context.Background()
+			c.Init(ctx, path)
 		},
 	}
 }
@@ -55,7 +59,8 @@ func handleGenerate(c *command.Command) *cobra.Command {
 				path = args[0]
 			}
 
-			c.Generate(path)
+			ctx := context.Background()
+			c.Generate(ctx, path)
 		},
 	}
 }
