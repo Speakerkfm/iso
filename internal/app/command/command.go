@@ -10,6 +10,7 @@ import (
 
 type Generator interface {
 	GenerateConfig() ([]byte, error)
+	GenerateProtoPlugin(svcDesc map[string]*models.ProtoServiceDesc) ([]byte, error)
 }
 
 type FileFetcher interface {

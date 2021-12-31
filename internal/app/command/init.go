@@ -10,7 +10,7 @@ import (
 const (
 	defaultPath = "."
 
-	projectDir     = ".iso"
+	projectDir     = "proto"
 	configFileName = "config.yaml"
 )
 

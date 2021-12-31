@@ -8,6 +8,7 @@ type ProtoService struct {
 	Name      string
 	Methods   []ProtoMethod
 	ProtoPath string
+	PkgName   string
 }
 
 type ProtoMethod struct {

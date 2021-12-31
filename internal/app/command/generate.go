@@ -14,6 +14,10 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
+const (
+	protoPluginName = "struct.go"
+)
+
 func (c *Command) Generate(path string) {
 	ctx := context.Background()
 	workDir := fmt.Sprintf("%s/%s/pb", path, projectDir)
@@ -37,7 +41,15 @@ func (c *Command) Generate(path string) {
 		handleError(err)
 	}
 
-	fmt.Printf("services: %+v\n", svcDesc)
+	protoPluginData, err := c.gen.GenerateProtoPlugin(svcDesc)
+	if err != nil {
+		handleError(err)
+	}
+
+	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", path, projectDir, protoPluginName), protoPluginData, fs.ModePerm); err != nil {
+		handleError(err)
+		return
+	}
 
 	fmt.Fprintln(os.Stdout, "Project generated")
 }

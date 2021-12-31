@@ -1,5 +1,10 @@
 package models
 
+type ProtoPlugin struct {
+	ModuleName    string
+	ProtoServices []*ProtoServiceDesc
+}
+
 type ProtoFile struct {
 	Name         string
 	PkgName      string
