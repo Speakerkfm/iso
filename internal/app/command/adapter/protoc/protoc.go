@@ -19,7 +19,7 @@ func (p *Protoc) Process(wd string, protoFile *models.ProtoFile) error {
 	cmd.Dir = wd
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("fail to use protoc for file %s: %w", protoFile.Name, err)
+		return fmt.Errorf("fail to process protoc for file %s: %w", protoFile.Name, err)
 	}
 
 	return nil

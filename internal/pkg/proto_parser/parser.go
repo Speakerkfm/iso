@@ -9,20 +9,27 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
-type Parser struct {
+// Parser парсит .proto файлы
+type Parser interface {
+	Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error)
 }
 
-func New() *Parser {
-	return &Parser{}
+type parser struct {
 }
 
-func (p *Parser) Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error) {
+// New создает новый парсер
+func New() Parser {
+	return &parser{}
+}
+
+// Parse парсит пришедший .proto файл во внутреннюю структуру
+func (p *parser) Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error) {
 	fileReader := strings.NewReader(string(rawProtoFile))
 	protoParser := proto.NewParser(fileReader)
 
 	definition, err := protoParser.Parse()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fail to parse proto file: %w", err)
 	}
 
 	resBuff := &resultBuffer{}
@@ -51,13 +58,4 @@ func (rb *resultBuffer) handleService(s *proto.Service) {
 	}
 
 	rb.serviceDescriptions = append(rb.serviceDescriptions, svcDesc)
-}
-
-func handleMessage(m *proto.Message) {
-	fmt.Println(m.Name)
-}
-
-func handleRPC(r *proto.RPC) {
-	fmt.Println(r.RequestType)
-	fmt.Println(r.ReturnsType)
 }

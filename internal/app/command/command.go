@@ -1,28 +1,14 @@
 package command
 
 import (
-	"context"
-	"fmt"
-	"os"
-
+	"github.com/Speakerkfm/iso/internal/pkg/fetcher"
+	"github.com/Speakerkfm/iso/internal/pkg/generator"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
+	"github.com/Speakerkfm/iso/internal/pkg/proto_parser"
 )
-
-type Generator interface {
-	GenerateConfigData() ([]byte, error)
-	GenerateProtoPluginData(protoPlugin models.ProtoPlugin) ([]byte, error)
-}
-
-type FileFetcher interface {
-	FetchFile(ctx context.Context, filePath string) ([]byte, error)
-}
 
 type Protoc interface {
 	Process(wd string, protoFile *models.ProtoFile) error
-}
-
-type ProtoParser interface {
-	Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error)
 }
 
 type Golang interface {
@@ -31,14 +17,14 @@ type Golang interface {
 }
 
 type Command struct {
-	gen         Generator
-	fileFetcher FileFetcher
+	gen         generator.Generator
+	fileFetcher fetcher.FileFetcher
+	protoParser proto_parser.Parser
 	protoc      Protoc
-	protoParser ProtoParser
 	golang      Golang
 }
 
-func New(g Generator, ff FileFetcher, pc Protoc, pp ProtoParser, golang Golang) *Command {
+func New(g generator.Generator, ff fetcher.FileFetcher, pc Protoc, pp proto_parser.Parser, golang Golang) *Command {
 	return &Command{
 		gen:         g,
 		fileFetcher: ff,
@@ -46,9 +32,4 @@ func New(g Generator, ff FileFetcher, pc Protoc, pp ProtoParser, golang Golang) 
 		protoParser: pp,
 		golang:      golang,
 	}
-}
-
-func handleError(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
 }

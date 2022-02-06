@@ -14,11 +14,10 @@ const (
 	configFileName = "config.yaml"
 )
 
-func (c *Command) Init(ctx context.Context, path string) {
+func (c *Command) Init(ctx context.Context, path string) error {
 	configData, err := c.gen.GenerateConfigData()
 	if err != nil {
-		handleError(err)
-		return
+		return fmt.Errorf("fail to generate config data: %w", err)
 	}
 
 	if path == "" {
@@ -26,9 +25,10 @@ func (c *Command) Init(ctx context.Context, path string) {
 	}
 
 	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", path, configFileName), configData, fs.ModePerm); err != nil {
-		handleError(err)
-		return
+		return fmt.Errorf("fail to save config data to file: %w", err)
 	}
 
 	fmt.Fprintln(os.Stdout, "Project initialized")
+
+	return nil
 }

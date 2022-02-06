@@ -8,13 +8,13 @@ import (
 	"net"
 	"plugin"
 
-	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	_ "google.golang.org/protobuf/proto"
 	_ "google.golang.org/protobuf/reflect/protoreflect"
 	_ "google.golang.org/protobuf/runtime/protoimpl"
 
+	"github.com/Speakerkfm/iso/internal/pkg/util"
 	models "github.com/Speakerkfm/iso/pkg/models"
 )
 
@@ -117,7 +117,7 @@ func NewImpl(services []*models.ProtoService) *impl {
 			rules[r.ServiceName] = make(map[string][]*Rule)
 		}
 
-		respID := uuid.NewV4().String()
+		respID := util.NewUUID()
 
 		rules[r.ServiceName][r.MethodName] = append(rules[r.ServiceName][r.MethodName], &Rule{
 			respID: respID,

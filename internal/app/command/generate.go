@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	uuid "github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
+	"github.com/Speakerkfm/iso/internal/pkg/util"
 )
 
 const (
@@ -20,51 +20,50 @@ const (
 	protoPluginName = "iso_proto"
 )
 
-func (c *Command) Generate(ctx context.Context, configPath string) {
+func (c *Command) Generate(ctx context.Context, configPath string) error {
 	fmt.Fprintln(os.Stdout, "Loading config...")
 	spec, err := c.loadConfig(configPath)
 	if err != nil {
-		handleError(err)
+		return fmt.Errorf("fail to load config from path %s: %w", configPath, err)
 	}
 
 	protoFiles, err := c.processConfig(spec)
 	if err != nil {
-		handleError(err)
+		return fmt.Errorf("fail to process config: %w", err)
 	}
 
-	wd := fmt.Sprintf("%s%s", os.TempDir(), uuid.NewV4().String())
+	wd := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
 	if err := os.MkdirAll(wd, fs.ModePerm); err != nil {
-		handleError(err)
+		return fmt.Errorf("fail to make temp dir %s: %w", wd, err)
 	}
 
 	fmt.Fprintln(os.Stdout, "Processing proto files...")
 	protoPlugin, err := c.processProtoFiles(ctx, wd, protoFiles)
 	if err != nil {
-		handleError(err)
+		return fmt.Errorf("fail to process proto files: %w", err)
 	}
 
 	protoPluginData, err := c.gen.GenerateProtoPluginData(protoPlugin)
 	if err != nil {
-		handleError(err)
+		return fmt.Errorf("fail to generate proto plugin: %w", err)
 	}
 
 	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", wd, protoPluginFile), protoPluginData, fs.ModePerm); err != nil {
-		handleError(err)
-		return
+		return fmt.Errorf("fail to save proto plugin data to file: %w", err)
 	}
 
 	if err := c.golang.CreateModule(wd, protoPluginName); err != nil {
-		handleError(err)
-		return
+		return fmt.Errorf("fail to create go mod for plugin: %w", err)
 	}
 
 	fmt.Fprintln(os.Stdout, "Building proto plugin...")
 	if err := c.golang.BuildPlugin(wd, protoPluginFile); err != nil {
-		handleError(err)
-		return
+		return fmt.Errorf("fail to build proto plugin: %w", err)
 	}
 
 	fmt.Fprintln(os.Stdout, "Proto plugin generated")
+
+	return nil
 }
 
 func (c *Command) loadConfig(path string) (models.Config, error) {

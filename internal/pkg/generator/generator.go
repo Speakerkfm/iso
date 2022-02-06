@@ -6,18 +6,27 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
-type Generator struct {
+// Generator генерирует файлы по шаблонам
+type Generator interface {
+	GenerateConfigData() ([]byte, error)
+	GenerateProtoPluginData(protoPlugin models.ProtoPlugin) ([]byte, error)
 }
 
-func New() *Generator {
-	return &Generator{}
+type generator struct {
 }
 
-func (g *Generator) GenerateConfigData() ([]byte, error) {
-	return []byte(configTemplate), nil
+// New создает объект генератора
+func New() Generator {
+	return &generator{}
 }
 
-func (g *Generator) GenerateProtoPluginData(protoPlugin models.ProtoPlugin) ([]byte, error) {
+// GenerateConfigData генерирует пример файла конфигурации
+func (g *generator) GenerateConfigData() ([]byte, error) {
+	return configTemplateExample, nil
+}
+
+// GenerateProtoPluginData генерирует .go файл прото плагина, который возвращает описание прото структур
+func (g *generator) GenerateProtoPluginData(protoPlugin models.ProtoPlugin) ([]byte, error) {
 	buff := bytes.NewBuffer(nil)
 	if err := implTemplate.Execute(buff, protoPlugin); err != nil {
 		return nil, err

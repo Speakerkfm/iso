@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
-func (c *Command) Root(ctx context.Context) {
+func (c *Command) Root(ctx context.Context) error {
 	fmt.Println("It works")
+	return nil
 }

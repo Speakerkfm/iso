@@ -27,6 +27,7 @@ func New() *Fetcher {
 	}
 }
 
+// FetchFile загружает файл по указанному пути
 func (f *Fetcher) FetchFile(ctx context.Context, filePath string) ([]byte, error) {
 	if strings.HasPrefix(filePath, "http") {
 		return f.webFetcher.FetchFile(ctx, filePath)

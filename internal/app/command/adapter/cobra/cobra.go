@@ -2,6 +2,8 @@ package cobra
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -26,7 +28,9 @@ func handleRoot(c *command.Command) *cobra.Command {
 		Long:  `...`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			c.Root(ctx)
+			if err := c.Root(ctx); err != nil {
+				handleError(err)
+			}
 		},
 	}
 }
@@ -43,7 +47,9 @@ func handleInit(c *command.Command) *cobra.Command {
 			}
 
 			ctx := context.Background()
-			c.Init(ctx, path)
+			if err := c.Init(ctx, path); err != nil {
+				handleError(err)
+			}
 		},
 	}
 }
@@ -60,7 +66,14 @@ func handleGenerate(c *command.Command) *cobra.Command {
 			}
 
 			ctx := context.Background()
-			c.Generate(ctx, path)
+			if err := c.Generate(ctx, path); err != nil {
+				handleError(err)
+			}
 		},
 	}
+}
+
+func handleError(err error) {
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(1)
 }
