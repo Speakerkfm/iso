@@ -2,35 +2,38 @@ package fetcher
 
 import (
 	"context"
+	"io/ioutil"
 	"strings"
-
-	"github.com/Speakerkfm/iso/internal/pkg/fetcher/local"
-	"github.com/Speakerkfm/iso/internal/pkg/fetcher/web"
 )
 
 type FileFetcher interface {
 	FetchFile(ctx context.Context, filePath string) ([]byte, error)
 }
 
-type Fetcher struct {
-	webFetcher   FileFetcher
-	localFetcher FileFetcher
+type fetcher struct {
 }
 
-func New() *Fetcher {
-	webFetcher := web.New()
-	localFetcher := local.New()
-
-	return &Fetcher{
-		webFetcher:   webFetcher,
-		localFetcher: localFetcher,
+func New() *fetcher {
+	return &fetcher{
 	}
 }
 
 // FetchFile загружает файл по указанному пути
-func (f *Fetcher) FetchFile(ctx context.Context, filePath string) ([]byte, error) {
-	if strings.HasPrefix(filePath, "http") {
-		return f.webFetcher.FetchFile(ctx, filePath)
+func (f *fetcher) FetchFile(ctx context.Context, filePath string) ([]byte, error) {
+	if isFilePathWeb(filePath) {
+		return f.fetchWebFile(ctx, filePath)
 	}
-	return f.localFetcher.FetchFile(ctx, filePath)
+	return f.fetchLocalFile(ctx, filePath)
+}
+
+func (f *fetcher) fetchLocalFile(ctx context.Context, filePath string) ([]byte, error) {
+	return ioutil.ReadFile(filePath)
+}
+
+func (f *fetcher) fetchWebFile(ctx context.Context, filePath string) ([]byte, error) {
+	return nil, nil
+}
+
+func isFilePathWeb(path string) bool {
+	return strings.HasPrefix(path, "http")
 }
