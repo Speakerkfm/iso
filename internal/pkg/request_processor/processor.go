@@ -2,7 +2,7 @@ package request_processor
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
@@ -12,17 +12,32 @@ type Processor interface {
 	Process(ctx context.Context, req *models.Request) (*models.Response, error)
 }
 
+type RuleManager interface {
+	GetRule(ctx context.Context, req *models.Request) (*models.Rule, error)
+}
+
 type processor struct {
+	ruleManager RuleManager
 }
 
 // New создает новый процессор
-func New() Processor {
-	return &processor{}
+func New(ruleManager RuleManager) Processor {
+	return &processor{
+		ruleManager: ruleManager,
+	}
 }
 
 // Process обрабатывает пришедший запрос
 func (p *processor) Process(ctx context.Context, req *models.Request) (*models.Response, error) {
+	rule, err := p.ruleManager.GetRule(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("fail to get rule for request: %w", err)
+	}
+
 	return &models.Response{
-		Message: json.RawMessage(`{"exists":true}`),
+		Message: rule.MessageData,
 	}, nil
 }
+
+// `{"exists":true}`
+// `{"user":{"id":10,"name":"kek"}}`

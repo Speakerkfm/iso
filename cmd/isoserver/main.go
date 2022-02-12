@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net"
 	"plugin"
@@ -13,86 +11,44 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/app/imitation"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
+	"github.com/Speakerkfm/iso/internal/pkg/rule/manager"
 	models "github.com/Speakerkfm/iso/pkg/models"
 )
 
-type ServiceProvider interface {
-	GetList() []*models.ProtoService
-}
+const (
+	pluginPath = "struct.so"
+	serverHost = "localhost:8001"
+)
 
 func main() {
-	plug, err := plugin.Open("struct.so")
+	plug, err := plugin.Open(pluginPath)
 	if err != nil {
-		panic(err)
+		log.Fatalf("fail to open plugin: %s", pluginPath)
 	}
 
-	svcs, err := plug.Lookup("ServiceProvider")
+	svcs, err := plug.Lookup(models.ServiceProviderName)
 	if err != nil {
-		panic(err)
+		log.Fatalf("fail too look up ServiceProvider in plugin: %s", err.Error())
 	}
 
-	s, ok := svcs.(ServiceProvider)
+	s, ok := svcs.(models.ServiceProvider)
 	if !ok {
-		fmt.Printf("convert failed")
+		log.Fatal("fail to get proto description from module")
 	}
 
-	lis, err := net.Listen("tcp", "localhost:8001")
+	lis, err := net.Listen("tcp", serverHost)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	processor := request_processor.New()
+	ruleManager := manager.New()
+	processor := request_processor.New(ruleManager)
 
 	impl := imitation.New(processor, s.GetList())
+
+	log.Println("iso server created")
+
 	if err := impl.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
-	}
-}
-
-type Rule struct {
-	conditions []condition
-	respID     string
-}
-
-func (r *Rule) IsSelected() bool {
-	return true
-}
-
-type condition struct {
-	Key   string
-	Value string
-}
-
-type RawRule struct {
-	ServiceName  string
-	MethodName   string
-	Conditions   []condition
-	ResponseData json.RawMessage
-}
-
-func getRawRules() []*RawRule {
-	return []*RawRule{
-		{
-			ServiceName: "UserService",
-			MethodName:  "GetUser",
-			Conditions: []condition{
-				{
-					Key:   "id",
-					Value: "10",
-				},
-			},
-			ResponseData: []byte(`{"user":{"id":10,"name":"kek"}}`),
-		},
-		{
-			ServiceName: "PhoneService",
-			MethodName:  "CheckPhone",
-			Conditions: []condition{
-				{
-					Key:   "id",
-					Value: "10",
-				},
-			},
-			ResponseData: []byte(`{"exists":true}`),
-		},
 	}
 }

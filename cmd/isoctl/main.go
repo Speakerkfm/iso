@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/Speakerkfm/iso/internal/app/command"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/cobra"
@@ -25,7 +24,6 @@ func main() {
 	cobraCmd := cobra.New(cmd)
 
 	if err := cobraCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		log.Fatalf("fail to execute command: %s", err.Error())
 	}
 }

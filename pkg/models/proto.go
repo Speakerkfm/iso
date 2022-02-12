@@ -4,6 +4,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const (
+	ServiceProviderName = "ServiceProvider"
+)
+
+type ServiceProvider interface {
+	GetList() []*ProtoService
+}
+
 type ProtoService struct {
 	Name      string
 	Methods   []ProtoMethod
