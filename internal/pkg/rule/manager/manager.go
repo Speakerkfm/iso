@@ -8,7 +8,7 @@ import (
 )
 
 type manager struct {
-	ruleTree *RuleNode
+	ruleTree *models.RuleNode
 }
 
 func New() *manager {
@@ -21,7 +21,7 @@ func (m *manager) GetRule(ctx context.Context, req *models.Request) (*models.Rul
 	currentNode := m.ruleTree
 	for currentNode.Rule == nil {
 		for _, nextNode := range currentNode.NextNodes {
-			if nextNode.Condition.Eval(req.Values) {
+			if evalCondition(nextNode.Condition, req.Values) {
 				currentNode = nextNode
 				break
 			}
@@ -30,34 +30,36 @@ func (m *manager) GetRule(ctx context.Context, req *models.Request) (*models.Rul
 	return currentNode.Rule, nil
 }
 
-type RuleNode struct {
-	Condition models.Condition
-	NextNodes []*RuleNode
-	Rule      *models.Rule
+func evalCondition(cond models.Condition, values map[string]string) bool {
+	v, ok := values[cond.Key]
+	if !ok {
+		return false
+	}
+	return v == cond.Value
 }
 
-func createRuleTree() *RuleNode {
-	return &RuleNode{
+func createRuleTree() *models.RuleNode {
+	return &models.RuleNode{
 		Condition: models.Condition{},
-		NextNodes: []*RuleNode{
+		NextNodes: []*models.RuleNode{
 			{
 				Condition: models.Condition{
-					Key:   "Host",
+					Key:   models.FieldHost,
 					Value: "127.0.0.1",
 				},
-				NextNodes: []*RuleNode{
+				NextNodes: []*models.RuleNode{
 					{
 						Condition: models.Condition{
-							Key:   "ServiceName",
+							Key:   models.FieldServiceName,
 							Value: "UserService",
 						},
-						NextNodes: []*RuleNode{
+						NextNodes: []*models.RuleNode{
 							{
 								Condition: models.Condition{
-									Key:   "MethodName",
+									Key:   models.FieldMethodName,
 									Value: "GetUser",
 								},
-								NextNodes: []*RuleNode{
+								NextNodes: []*models.RuleNode{
 									{
 										Condition: models.Condition{
 											Key:   "body.id",
@@ -78,16 +80,16 @@ func createRuleTree() *RuleNode {
 					},
 					{
 						Condition: models.Condition{
-							Key:   "ServiceName",
+							Key:   models.FieldServiceName,
 							Value: "PhoneService",
 						},
-						NextNodes: []*RuleNode{
+						NextNodes: []*models.RuleNode{
 							{
 								Condition: models.Condition{
-									Key:   "MethodName",
+									Key:   models.FieldMethodName,
 									Value: "CheckPhone",
 								},
-								NextNodes: []*RuleNode{
+								NextNodes: []*models.RuleNode{
 									{
 										Condition: models.Condition{
 											Key:   "body.phone",
@@ -108,15 +110,15 @@ func createRuleTree() *RuleNode {
 var rule1 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   "Host",
+			Key:   models.FieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   "ServiceName",
+			Key:   models.FieldServiceName,
 			Value: "UserService",
 		},
 		{
-			Key:   "MethodName",
+			Key:   models.FieldMethodName,
 			Value: "GetUser",
 		},
 		{
@@ -130,15 +132,15 @@ var rule1 = &models.Rule{
 var rule2 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   "Host",
+			Key:   models.FieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   "ServiceName",
+			Key:   models.FieldServiceName,
 			Value: "UserService",
 		},
 		{
-			Key:   "MethodName",
+			Key:   models.FieldMethodName,
 			Value: "GetUser",
 		},
 		{
@@ -152,15 +154,15 @@ var rule2 = &models.Rule{
 var rule3 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   "Host",
+			Key:   models.FieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   "ServiceName",
+			Key:   models.FieldServiceName,
 			Value: "PhoneService",
 		},
 		{
-			Key:   "MethodName",
+			Key:   models.FieldMethodName,
 			Value: "CheckPhone",
 		},
 		{
