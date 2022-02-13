@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"plugin"
@@ -12,15 +13,18 @@ import (
 	"github.com/Speakerkfm/iso/internal/app/imitation"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 	"github.com/Speakerkfm/iso/internal/pkg/rule/manager"
+	rule_parser "github.com/Speakerkfm/iso/internal/pkg/rule/parser"
 	models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 const (
-	pluginPath = "struct.so"
-	serverHost = "localhost:8001"
+	pluginPath = "struct.so"      // in args ...
+	serverHost = "localhost:8001" // in args ...
 )
 
 func main() {
+	appCtx := context.Background()
+
 	plug, err := plugin.Open(pluginPath)
 	if err != nil {
 		log.Fatalf("fail to open plugin: %s", pluginPath)
@@ -41,7 +45,15 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	ruleParser := rule_parser.New()
+	rules, err := ruleParser.Parse(appCtx, "")
+	if err != nil {
+		log.Fatalf("fail to parse rules: %s", err.Error())
+	}
+
 	ruleManager := manager.New()
+	ruleManager.UpdateRuleTree(rules)
+
 	processor := request_processor.New(ruleManager)
 
 	impl := imitation.New(processor, s.GetList())

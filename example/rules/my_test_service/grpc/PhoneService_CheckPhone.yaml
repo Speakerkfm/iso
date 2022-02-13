@@ -1,0 +1,8 @@
+- conditions:
+    - Key: body.phone
+      Value: +1000
+  response:
+    delay: 10ms
+    message_data: {
+      "exists":true
+    }

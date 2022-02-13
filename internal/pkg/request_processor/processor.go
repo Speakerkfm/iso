@@ -3,6 +3,7 @@ package request_processor
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
@@ -13,7 +14,7 @@ type Processor interface {
 }
 
 type RuleManager interface {
-	GetRule(ctx context.Context, req *models.Request) (*models.Rule, error)
+	GetHandlerConfig(ctx context.Context, req *models.Request) (*models.HandlerConfig, error)
 }
 
 type processor struct {
@@ -29,14 +30,27 @@ func New(ruleManager RuleManager) Processor {
 
 // Process обрабатывает пришедший запрос
 func (p *processor) Process(ctx context.Context, req *models.Request) (*models.Response, error) {
-	rule, err := p.ruleManager.GetRule(ctx, req)
+	cfg, err := p.ruleManager.GetHandlerConfig(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("fail to get rule for request: %w", err)
 	}
 
+	if err := waitDelay(ctx, cfg.ResponseDelay); err != nil {
+		return nil, fmt.Errorf("fail to wait delay: %w", err)
+	}
+
 	return &models.Response{
-		Message: rule.MessageData,
+		Message: cfg.MessageData,
 	}, nil
+}
+
+func waitDelay(ctx context.Context, delay time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(delay):
+	}
+	return nil
 }
 
 // `{"exists":true}`

@@ -2,8 +2,7 @@ package cobra
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/spf13/cobra"
 
@@ -74,6 +73,5 @@ func handleGenerate(c *command.Command) *cobra.Command {
 }
 
 func handleError(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
+	log.Fatal(err.Error())
 }

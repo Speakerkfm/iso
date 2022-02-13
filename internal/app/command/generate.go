@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,7 @@ const (
 )
 
 func (c *Command) Generate(ctx context.Context, configPath string) error {
-	fmt.Fprintln(os.Stdout, "Loading config...")
+	log.Println("Loading config...")
 	spec, err := c.loadConfig(configPath)
 	if err != nil {
 		return fmt.Errorf("fail to load config from path %s: %w", configPath, err)
@@ -33,11 +34,15 @@ func (c *Command) Generate(ctx context.Context, configPath string) error {
 	}
 
 	wd := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
+
+	log.Printf("Working directory: %s\n", wd)
+
 	if err := os.MkdirAll(wd, fs.ModePerm); err != nil {
 		return fmt.Errorf("fail to make temp dir %s: %w", wd, err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Processing proto files...")
+	log.Println("Processing proto files...")
+
 	protoPlugin, err := c.processProtoFiles(ctx, wd, protoFiles)
 	if err != nil {
 		return fmt.Errorf("fail to process proto files: %w", err)
@@ -56,12 +61,12 @@ func (c *Command) Generate(ctx context.Context, configPath string) error {
 		return fmt.Errorf("fail to create go mod for plugin: %w", err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Building proto plugin...")
+	log.Println("Building proto plugin...")
 	if err := c.golang.BuildPlugin(wd, protoPluginFile); err != nil {
 		return fmt.Errorf("fail to build proto plugin: %w", err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Proto plugin generated")
+	log.Println("Proto plugin generated")
 
 	return nil
 }

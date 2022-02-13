@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type RuleNode struct {
@@ -11,8 +12,14 @@ type RuleNode struct {
 }
 
 type Rule struct {
-	Conditions  []Condition
-	MessageData json.RawMessage
+	Conditions    []Condition
+	HandlerConfig *HandlerConfig
+}
+
+type HandlerConfig struct {
+	ResponseDelay time.Duration
+	MessageData   json.RawMessage
+	Error         error
 }
 
 type Condition struct {

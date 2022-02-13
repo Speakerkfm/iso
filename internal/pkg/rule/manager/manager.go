@@ -2,7 +2,7 @@ package manager
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
@@ -12,22 +12,83 @@ type manager struct {
 }
 
 func New() *manager {
-	return &manager{
-		ruleTree: createRuleTree(),
-	}
+	return &manager{}
 }
 
-func (m *manager) GetRule(ctx context.Context, req *models.Request) (*models.Rule, error) {
+func (m *manager) GetHandlerConfig(ctx context.Context, req *models.Request) (*models.HandlerConfig, error) {
 	currentNode := m.ruleTree
 	for currentNode.Rule == nil {
+		nextNodeFound := false
 		for _, nextNode := range currentNode.NextNodes {
 			if evalCondition(nextNode.Condition, req.Values) {
+				nextNodeFound = true
 				currentNode = nextNode
 				break
 			}
 		}
+		if !nextNodeFound {
+			break
+		}
 	}
-	return currentNode.Rule, nil
+	if currentNode == nil || currentNode.Rule == nil || currentNode.Rule.HandlerConfig == nil {
+		return nil, fmt.Errorf("rule not found")
+	}
+	return currentNode.Rule.HandlerConfig, nil
+}
+
+func (m *manager) UpdateRuleTree(rules []*models.Rule) {
+	ruleTree := createRuleTree(rules)
+
+	m.ruleTree = ruleTree
+}
+
+func createRuleTree(rules []*models.Rule) *models.RuleNode {
+	headNode := &models.RuleNode{}
+	for _, rule := range rules {
+		branch := ruleToTreeBranch(rule)
+		currentTreeNode := headNode
+		currentBranchNode := branch
+
+		leastFound := false
+		for !leastFound {
+			nextNodeFound := false
+			for _, nextNode := range currentTreeNode.NextNodes {
+				if isConditionEqual(nextNode.Condition, currentBranchNode.Condition) {
+					nextNodeFound = true
+					currentTreeNode = nextNode
+					currentBranchNode = currentBranchNode.NextNodes[0]
+					break
+				}
+			}
+			if !nextNodeFound {
+				leastFound = true
+			}
+		}
+
+		currentTreeNode.NextNodes = append(currentTreeNode.NextNodes, currentBranchNode)
+	}
+
+	return headNode
+}
+
+func isConditionEqual(first, second models.Condition) bool {
+	return first == second
+}
+
+func ruleToTreeBranch(rule *models.Rule) *models.RuleNode {
+	var previousNode *models.RuleNode = nil
+	for idx := len(rule.Conditions) - 1; idx >= 0; idx-- {
+		node := &models.RuleNode{
+			Condition: rule.Conditions[idx],
+		}
+		if previousNode == nil {
+			node.Rule = rule
+		} else {
+			node.NextNodes = []*models.RuleNode{previousNode}
+		}
+		previousNode = node
+	}
+	return previousNode
 }
 
 func evalCondition(cond models.Condition, values map[string]string) bool {
@@ -36,139 +97,4 @@ func evalCondition(cond models.Condition, values map[string]string) bool {
 		return false
 	}
 	return v == cond.Value
-}
-
-func createRuleTree() *models.RuleNode {
-	return &models.RuleNode{
-		Condition: models.Condition{},
-		NextNodes: []*models.RuleNode{
-			{
-				Condition: models.Condition{
-					Key:   models.FieldHost,
-					Value: "127.0.0.1",
-				},
-				NextNodes: []*models.RuleNode{
-					{
-						Condition: models.Condition{
-							Key:   models.FieldServiceName,
-							Value: "UserService",
-						},
-						NextNodes: []*models.RuleNode{
-							{
-								Condition: models.Condition{
-									Key:   models.FieldMethodName,
-									Value: "GetUser",
-								},
-								NextNodes: []*models.RuleNode{
-									{
-										Condition: models.Condition{
-											Key:   "body.id",
-											Value: "15",
-										},
-										Rule: rule2,
-									},
-									{
-										Condition: models.Condition{
-											Key:   "body.id",
-											Value: "10",
-										},
-										Rule: rule1,
-									},
-								},
-							},
-						},
-					},
-					{
-						Condition: models.Condition{
-							Key:   models.FieldServiceName,
-							Value: "PhoneService",
-						},
-						NextNodes: []*models.RuleNode{
-							{
-								Condition: models.Condition{
-									Key:   models.FieldMethodName,
-									Value: "CheckPhone",
-								},
-								NextNodes: []*models.RuleNode{
-									{
-										Condition: models.Condition{
-											Key:   "body.phone",
-											Value: "+1000",
-										},
-										Rule: rule3,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-var rule1 = &models.Rule{
-	Conditions: []models.Condition{
-		{
-			Key:   models.FieldHost,
-			Value: "127.0.0.1",
-		},
-		{
-			Key:   models.FieldServiceName,
-			Value: "UserService",
-		},
-		{
-			Key:   models.FieldMethodName,
-			Value: "GetUser",
-		},
-		{
-			Key:   "body.id",
-			Value: "10",
-		},
-	},
-	MessageData: json.RawMessage(`{"user":{"id":10,"name":"kek_10"}}`),
-}
-
-var rule2 = &models.Rule{
-	Conditions: []models.Condition{
-		{
-			Key:   models.FieldHost,
-			Value: "127.0.0.1",
-		},
-		{
-			Key:   models.FieldServiceName,
-			Value: "UserService",
-		},
-		{
-			Key:   models.FieldMethodName,
-			Value: "GetUser",
-		},
-		{
-			Key:   "body.id",
-			Value: "15",
-		},
-	},
-	MessageData: json.RawMessage(`{"user":{"id":15,"name":"kek_15"}}`),
-}
-
-var rule3 = &models.Rule{
-	Conditions: []models.Condition{
-		{
-			Key:   models.FieldHost,
-			Value: "127.0.0.1",
-		},
-		{
-			Key:   models.FieldServiceName,
-			Value: "PhoneService",
-		},
-		{
-			Key:   models.FieldMethodName,
-			Value: "CheckPhone",
-		},
-		{
-			Key:   "body.phone",
-			Value: "+1000",
-		},
-	},
-	MessageData: json.RawMessage(`{"exists":true}`),
 }

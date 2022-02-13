@@ -1,8 +1,8 @@
 package proto_parser
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/emicklei/proto"
 
@@ -22,10 +22,9 @@ func New() Parser {
 	return &parser{}
 }
 
-// Parse парсит пришедший .proto файл во внутреннюю структуру
+// Parse парсит пришедший .proto файл во внутреннюю структуру, которая содержит описание proto структур
 func (p *parser) Parse(rawProtoFile []byte) ([]*models.ProtoServiceDesc, error) {
-	fileReader := strings.NewReader(string(rawProtoFile))
-	protoParser := proto.NewParser(fileReader)
+	protoParser := proto.NewParser(bytes.NewBuffer(rawProtoFile))
 
 	definition, err := protoParser.Parse()
 	if err != nil {

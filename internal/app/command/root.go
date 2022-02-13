@@ -2,10 +2,10 @@ package command
 
 import (
 	"context"
-	"fmt"
+	"log"
 )
 
 func (c *Command) Root(ctx context.Context) error {
-	fmt.Println("It works")
+	log.Println("It works")
 	return nil
 }

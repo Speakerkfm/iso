@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"os"
+	"log"
 )
 
 const (
@@ -28,7 +28,7 @@ func (c *Command) Init(ctx context.Context, path string) error {
 		return fmt.Errorf("fail to save config data to file: %w", err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Project initialized")
+	log.Println( "Project initialized")
 
 	return nil
 }
