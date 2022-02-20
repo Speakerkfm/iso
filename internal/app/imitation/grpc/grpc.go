@@ -81,7 +81,7 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			Msg:         msg.ProtoReflect().New().Interface(),
 		}
 		if err := dec(in); err != nil {
-			logger.Infof(ctx, "err: %+v\n", err)
+			logger.Errorf(ctx, "err: %+v\n", err)
 			return nil, err
 		}
 		logger.Infof(ctx, "in: %+v\n", in)

@@ -96,5 +96,8 @@ func evalCondition(cond models.Condition, values map[string]string) bool {
 	if !ok {
 		return false
 	}
+	if cond.Value == "*" {
+		return true
+	}
 	return v == cond.Value
 }

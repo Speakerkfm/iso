@@ -1,11 +1,9 @@
-service_name: "PhoneService"
-method_name: "CheckPhone"
+service_name: PhoneService
+method_name: CheckPhone
 rules:
   - conditions:
-      - key: body.phone
-        value: +1000
+      - key: header.x-request-id
+        value: '*'
     response:
-      delay: 10ms
-      data: '{
-      "exists": true
-    }'
+      delay: 5ms
+      data: '{}'

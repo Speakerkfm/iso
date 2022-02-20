@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 
+	_ "google.golang.org/protobuf/proto"
+	_ "google.golang.org/protobuf/reflect/protoreflect"
+	_ "google.golang.org/protobuf/runtime/protoimpl"
+
 	"github.com/Speakerkfm/iso/internal/app/command"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/cobra"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/golang"

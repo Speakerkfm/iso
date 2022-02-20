@@ -7,6 +7,7 @@ import (
 // ExternalDependency сущность, которая хранит описание внешней зависимости
 type ExternalDependency struct {
 	Host       string   `yaml:"host"`
+	Name       string   `yaml:"name"`
 	ProtoPaths []string `yaml:"grpc,flow"`
 }
 
@@ -17,17 +18,18 @@ type ServiceSpecification struct {
 
 type ServiceConfigDesc struct {
 	Host         string              `yaml:"host"`
+	Name         string              `yaml:"-"`
 	GRPCHandlers []HandlerConfigDesc `yaml:"-"`
 }
 
 type HandlerConfigDesc struct {
 	ServiceName string     `yaml:"service_name"`
 	MethodName  string     `yaml:"method_name"`
-	Rules       []RuleDesc `yaml:"rules,flow"`
+	Rules       []RuleDesc `yaml:"rules"`
 }
 
 type RuleDesc struct {
-	Conditions []HandlerConditionDesc `yaml:"conditions,flow"`
+	Conditions []HandlerConditionDesc `yaml:"conditions"`
 	Response   HandlerResponseDesc    `yaml:"response"`
 }
 

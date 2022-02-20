@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
@@ -25,11 +26,11 @@ func (c *Command) Init(ctx context.Context, path string) error {
 		path = defaultPath
 	}
 
-	if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", path, configFileName), specData, fs.ModePerm); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(path, configFileName), specData, fs.ModePerm); err != nil {
 		return fmt.Errorf("fail to save spec data to file: %w", err)
 	}
 
-	logger.Info(ctx,"Project initialized")
+	logger.Info(ctx, "Project initialized")
 
 	return nil
 }

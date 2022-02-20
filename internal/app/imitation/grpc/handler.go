@@ -58,7 +58,7 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 
 func convertRequest(req *Request) *models.Request {
 	values := make(map[string]string)
-	values[models.FieldHost] = "127.0.0.1" // get from header
+	values[models.FieldHost] = "127.0.0.1:8001" // get from header
 	values[models.FieldServiceName] = req.ServiceName
 	values[models.FieldMethodName] = req.MethodName
 
