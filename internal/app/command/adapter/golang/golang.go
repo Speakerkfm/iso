@@ -2,7 +2,6 @@ package golang
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 )
 
@@ -31,13 +30,8 @@ func (g *Golang) CreateModule(wd, modName string) error {
 	return nil
 }
 
-func (g *Golang) BuildPlugin(wd, buildFile string) error {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("fail to get working dir: %w", err)
-	}
-
-	cmdBuildModule := exec.Command("go", "build", "-buildmode=plugin", "-o", currentDir, buildFile)
+func (g *Golang) BuildPlugin(wd, outDir, buildFile string) error {
+	cmdBuildModule := exec.Command("go", "build", "-buildmode=plugin", "-o", outDir, buildFile)
 	cmdBuildModule.Dir = wd
 
 	if err := cmdBuildModule.Run(); err != nil {

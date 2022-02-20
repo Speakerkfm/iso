@@ -2,18 +2,23 @@ package command
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
+	"plugin"
 	"strings"
+	"time"
 
+	"github.com/bxcodec/faker/v3"
 	"gopkg.in/yaml.v2"
 
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 	"github.com/Speakerkfm/iso/internal/pkg/util"
+	shared_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 const (
@@ -21,27 +26,27 @@ const (
 	protoPluginName = "iso_proto"
 )
 
-func (c *Command) Generate(ctx context.Context, configPath string) error {
-	log.Println("Loading config...")
-	spec, err := c.loadConfig(configPath)
+func (c *Command) Generate(ctx context.Context, specPath string) error {
+	logger.Info(ctx, "Loading specification...")
+	spec, err := c.loadSpec(specPath)
 	if err != nil {
-		return fmt.Errorf("fail to load config from path %s: %w", configPath, err)
+		return fmt.Errorf("fail to load specification from path %s: %w", specPath, err)
 	}
 
-	protoFiles, err := c.processConfig(spec)
+	protoFiles, err := c.processSpec(spec)
 	if err != nil {
 		return fmt.Errorf("fail to process config: %w", err)
 	}
 
 	wd := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
 
-	log.Printf("Working directory: %s\n", wd)
+	logger.Infof(ctx, "Working directory: %s\n", wd)
 
 	if err := os.MkdirAll(wd, fs.ModePerm); err != nil {
 		return fmt.Errorf("fail to make temp dir %s: %w", wd, err)
 	}
 
-	log.Println("Processing proto files...")
+	logger.Info(ctx, "Processing proto files...")
 
 	protoPlugin, err := c.processProtoFiles(ctx, wd, protoFiles)
 	if err != nil {
@@ -61,40 +66,47 @@ func (c *Command) Generate(ctx context.Context, configPath string) error {
 		return fmt.Errorf("fail to create go mod for plugin: %w", err)
 	}
 
-	log.Println("Building proto plugin...")
-	if err := c.golang.BuildPlugin(wd, protoPluginFile); err != nil {
+	logger.Info(ctx, "Building proto plugin...")
+	currDir, _ := os.Getwd()
+	outDir := filepath.Join(currDir, filepath.Dir(specPath))
+	logger.Infof(ctx, "out dir: %s", outDir)
+	if err := c.golang.BuildPlugin(wd, outDir, protoPluginFile); err != nil {
 		return fmt.Errorf("fail to build proto plugin: %w", err)
 	}
 
-	log.Println("Proto plugin generated")
+	logger.Info(ctx, "Proto plugin generated")
+
+	if err := c.generateRulesExample(ctx, spec, outDir); err != nil {
+		return fmt.Errorf("fail to generate rules example: %w", err)
+	}
 
 	return nil
 }
 
-func (c *Command) loadConfig(path string) (models.Config, error) {
-	spec := models.Config{}
+func (c *Command) loadSpec(path string) (models.ServiceSpecification, error) {
+	spec := models.ServiceSpecification{}
 
 	fin, err := os.Open(path)
 	if err != nil {
-		return models.Config{}, err
+		return models.ServiceSpecification{}, err
 	}
 	defer fin.Close()
 
 	if err := yaml.NewDecoder(fin).Decode(&spec); err != nil {
-		return models.Config{}, err
+		return models.ServiceSpecification{}, err
 	}
 
 	return spec, nil
 }
 
-func (c *Command) processConfig(spec models.Config) ([]*models.ProtoFile, error) {
-	var protoFiles []*models.ProtoFile
+func (c *Command) processSpec(spec models.ServiceSpecification) ([]*models.ProtoFileData, error) {
+	var protoFiles []*models.ProtoFileData
 
 	for _, dep := range spec.ExternalDependencies {
 		for _, protoPath := range dep.ProtoPaths {
 			fileName := filepath.Base(protoPath)
 			pkgName := strings.Split(fileName, ".")[0]
-			protoFiles = append(protoFiles, &models.ProtoFile{
+			protoFiles = append(protoFiles, &models.ProtoFileData{
 				Name:         fileName,
 				PkgName:      pkgName,
 				OriginalPath: protoPath,
@@ -106,9 +118,9 @@ func (c *Command) processConfig(spec models.Config) ([]*models.ProtoFile, error)
 	return protoFiles, nil
 }
 
-func (c *Command) processProtoFiles(ctx context.Context, wd string, protoFiles []*models.ProtoFile) (models.ProtoPlugin, error) {
+func (c *Command) processProtoFiles(ctx context.Context, wd string, protoFiles []*models.ProtoFileData) (models.ProtoPluginDesc, error) {
 	var err error
-	protoPlugin := models.ProtoPlugin{
+	protoPlugin := models.ProtoPluginDesc{
 		ModuleName: protoPluginName,
 	}
 
@@ -117,25 +129,25 @@ func (c *Command) processProtoFiles(ctx context.Context, wd string, protoFiles [
 	for _, protoFile := range protoFiles {
 		protoFile.RawData, err = c.fileFetcher.FetchFile(ctx, protoFile.OriginalPath)
 		if err != nil {
-			return models.ProtoPlugin{}, err
+			return models.ProtoPluginDesc{}, err
 		}
 
 		protoDir := fmt.Sprintf("%s/%s", wd, protoFile.PkgName)
 		if err := os.MkdirAll(protoDir, fs.ModePerm); err != nil {
-			return models.ProtoPlugin{}, err
+			return models.ProtoPluginDesc{}, err
 		}
 
 		if err := ioutil.WriteFile(fmt.Sprintf("%s/%s", wd, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
-			return models.ProtoPlugin{}, err
+			return models.ProtoPluginDesc{}, err
 		}
 
 		if err := c.protoc.Process(wd, protoFile); err != nil {
-			return models.ProtoPlugin{}, err
+			return models.ProtoPluginDesc{}, err
 		}
 
 		serviceDescriptions, err := c.protoParser.Parse(protoFile.RawData)
 		if err != nil {
-			return models.ProtoPlugin{}, err
+			return models.ProtoPluginDesc{}, err
 		}
 
 		for _, svcDesc := range serviceDescriptions {
@@ -154,4 +166,87 @@ func (c *Command) processProtoFiles(ctx context.Context, wd string, protoFiles [
 	}
 
 	return protoPlugin, nil
+}
+
+func (c *Command) generateRulesExample(ctx context.Context, spec models.ServiceSpecification, path string) error {
+	svcProvider, err := loadPluginData(ctx, filepath.Join(path, models.PluginName))
+	if err != nil {
+		return fmt.Errorf("fail to load plugin data: %w", err)
+	}
+
+	dataPathProtoService := make(map[string]*shared_models.ProtoService)
+
+	for _, svc := range svcProvider.GetList() {
+		dataPathProtoService[svc.ProtoPath] = svc
+	}
+
+	var svcExamples []models.ServiceConfigDesc
+	{
+	}
+
+	for _, dep := range spec.ExternalDependencies {
+		svcDesc := models.ServiceConfigDesc{
+			Host: dep.Host,
+		}
+		for _, protoDepPath := range dep.ProtoPaths {
+			protoSvc, ok := dataPathProtoService[protoDepPath]
+			if !ok {
+				// todo
+			}
+
+			for _, protoHandler := range protoSvc.Methods {
+				respStruct := protoHandler.ResponseStruct
+				if err := faker.FakeData(respStruct); err != nil {
+
+				}
+				respData, err := json.MarshalIndent(respStruct, "", "	")
+				if err != nil {
+
+				}
+				handlerDesc := models.HandlerConfigDesc{
+					ServiceName: protoSvc.Name,
+					MethodName:  protoHandler.Name,
+					Rules: []models.RuleDesc{
+						// generate
+						{
+							Conditions: []models.HandlerConditionDesc{
+								{
+									Key:   "header.x-request-id",
+									Value: "*",
+								},
+							},
+							Response: models.HandlerResponseDesc{
+								Data:  string(respData),
+								Delay: 5 * time.Millisecond,
+							},
+						},
+					},
+				}
+				svcDesc.GRPCHandlers = append(svcDesc.GRPCHandlers, handlerDesc)
+			}
+		}
+		svcExamples = append(svcExamples, svcDesc)
+	}
+
+	fmt.Printf("generated rules: %+v\n", svcExamples)
+	return nil
+}
+
+func loadPluginData(ctx context.Context, pluginPath string) (shared_models.ServiceProvider, error) {
+	plug, err := plugin.Open(pluginPath)
+	if err != nil {
+		return nil, fmt.Errorf("fail to open plugin: %s, err: %w", pluginPath, err)
+	}
+
+	svcs, err := plug.Lookup(shared_models.ServiceProviderName)
+	if err != nil {
+		return nil, fmt.Errorf("fail too look up ServiceProvider in plugin: %s", err.Error())
+	}
+
+	s, ok := svcs.(shared_models.ServiceProvider)
+	if !ok {
+		return nil, fmt.Errorf("fail to get proto description from module")
+	}
+
+	return s, nil
 }

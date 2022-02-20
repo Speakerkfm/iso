@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/Speakerkfm/iso/pkg/models v0.0.0-20220212164409-f591434969e4
+	github.com/bxcodec/faker/v3 v3.7.0 // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.1.0

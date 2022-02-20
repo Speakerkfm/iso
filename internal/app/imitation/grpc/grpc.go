@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 	"github.com/Speakerkfm/iso/pkg/models"
 )
@@ -80,10 +81,10 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			Msg:         msg.ProtoReflect().New().Interface(),
 		}
 		if err := dec(in); err != nil {
-			fmt.Printf("err: %+v\n", err)
+			logger.Infof(ctx, "err: %+v\n", err)
 			return nil, err
 		}
-		fmt.Printf("in: %+v\n", in)
+		logger.Infof(ctx, "in: %+v\n", in)
 		if interceptor == nil {
 			return srv.(Handler).Handle(ctx, in)
 		}

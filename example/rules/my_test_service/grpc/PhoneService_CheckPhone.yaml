@@ -1,8 +1,11 @@
-- conditions:
-    - Key: body.phone
-      Value: +1000
-  response:
-    delay: 10ms
-    message_data: {
-      "exists":true
-    }
+service_name: "PhoneService"
+method_name: "CheckPhone"
+rules:
+  - conditions:
+      - key: body.phone
+        value: +1000
+    response:
+      delay: 10ms
+      data: '{
+      "exists": true
+    }'

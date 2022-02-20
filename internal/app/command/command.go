@@ -8,12 +8,12 @@ import (
 )
 
 type Protoc interface {
-	Process(wd string, protoFile *models.ProtoFile) error
+	Process(wd string, protoFile *models.ProtoFileData) error
 }
 
 type Golang interface {
 	CreateModule(wd, modName string) error
-	BuildPlugin(wd, buildFile string) error
+	BuildPlugin(wd, outDir, buildFile string) error
 }
 
 type Command struct {

@@ -1,0 +1,4 @@
+external_dependencies:
+  - host: 127.0.0.1:8001
+    grpc:
+      - /Users/usanin/Documents/go_projects/test_cmd/pb/service_b.proto

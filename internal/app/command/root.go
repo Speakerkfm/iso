@@ -2,10 +2,11 @@ package command
 
 import (
 	"context"
-	"log"
+
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
 
 func (c *Command) Root(ctx context.Context) error {
-	log.Println("It works")
+	logger.Info(ctx, "It works")
 	return nil
 }

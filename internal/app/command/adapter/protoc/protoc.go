@@ -14,7 +14,7 @@ func New() *Protoc {
 	return &Protoc{}
 }
 
-func (p *Protoc) Process(wd string, protoFile *models.ProtoFile) error {
+func (p *Protoc) Process(wd string, protoFile *models.ProtoFileData) error {
 	cmd := exec.Command("protoc", "--go_out=.", "--go_opt=paths=source_relative", protoFile.Path)
 	cmd.Dir = wd
 

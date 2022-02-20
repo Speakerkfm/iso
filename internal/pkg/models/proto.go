@@ -1,14 +1,18 @@
 package models
 
-// ProtoPlugin сущность, которая хранит объекты для генерации прото плагина
-type ProtoPlugin struct {
+const (
+	PluginName = "struct.so"
+)
+
+// ProtoPluginDesc сущность, которая хранит объекты для генерации прото плагина
+type ProtoPluginDesc struct {
 	ModuleName    string
 	Imports       []string
 	ProtoServices []*ProtoServiceDesc
 }
 
-// ProtoFile сущность, которая хранит описание .proto файла и его данные
-type ProtoFile struct {
+// ProtoFile сущность, которая хранит данные .proto файла и его содержимое
+type ProtoFileData struct {
 	Name         string
 	PkgName      string
 	OriginalPath string

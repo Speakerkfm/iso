@@ -15,7 +15,7 @@ func New() *manager {
 	return &manager{}
 }
 
-func (m *manager) GetHandlerConfig(ctx context.Context, req *models.Request) (*models.HandlerConfig, error) {
+func (m *manager) GetRule(ctx context.Context, req *models.Request) (*models.Rule, error) {
 	currentNode := m.ruleTree
 	for currentNode.Rule == nil {
 		nextNodeFound := false
@@ -30,10 +30,10 @@ func (m *manager) GetHandlerConfig(ctx context.Context, req *models.Request) (*m
 			break
 		}
 	}
-	if currentNode == nil || currentNode.Rule == nil || currentNode.Rule.HandlerConfig == nil {
+	if currentNode == nil || currentNode.Rule == nil {
 		return nil, fmt.Errorf("rule not found")
 	}
-	return currentNode.Rule.HandlerConfig, nil
+	return currentNode.Rule, nil
 }
 
 func (m *manager) UpdateRuleTree(rules []*models.Rule) {

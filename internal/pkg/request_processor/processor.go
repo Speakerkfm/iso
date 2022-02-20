@@ -14,7 +14,7 @@ type Processor interface {
 }
 
 type RuleManager interface {
-	GetHandlerConfig(ctx context.Context, req *models.Request) (*models.HandlerConfig, error)
+	GetRule(ctx context.Context, req *models.Request) (*models.Rule, error)
 }
 
 type processor struct {
@@ -28,19 +28,19 @@ func New(ruleManager RuleManager) Processor {
 	}
 }
 
-// Process обрабатывает пришедший запрос
+// Process главный обработчик пришедшего запроса
 func (p *processor) Process(ctx context.Context, req *models.Request) (*models.Response, error) {
-	cfg, err := p.ruleManager.GetHandlerConfig(ctx, req)
+	rule, err := p.ruleManager.GetRule(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("fail to get rule for request: %w", err)
 	}
 
-	if err := waitDelay(ctx, cfg.ResponseDelay); err != nil {
+	if err := waitDelay(ctx, rule.HandlerConfig.ResponseDelay); err != nil {
 		return nil, fmt.Errorf("fail to wait delay: %w", err)
 	}
 
 	return &models.Response{
-		Message: cfg.MessageData,
+		Message: rule.HandlerConfig.MessageData,
 	}, nil
 }
 

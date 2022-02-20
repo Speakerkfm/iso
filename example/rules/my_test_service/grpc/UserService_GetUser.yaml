@@ -1,23 +1,26 @@
-- conditions:
-    - Key: body.id
-      Value: 15
-  response:
-    delay: 5ms
-    data: {
+service_name: "UserService"
+method_name: "GetUser"
+rules:
+  - conditions:
+      - key: body.id
+        value: 15
+    response:
+      delay: 5ms
+      data: '{
       "user": {
         "id": 15,
         "name": "kek_15"
       }
-    }
+    }'
 
-- conditions:
-    - Key: body.id
-      Value: 10
-  response:
-    delay: 10ms
-    data: {
+  - conditions:
+      - key: body.id
+        value: 10
+    response:
+      delay: 10ms
+      data: '{
       "user": {
         "id": 10,
         "name": "kek_10"
       }
-    }
+    }'

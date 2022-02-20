@@ -2,11 +2,11 @@ package cobra
 
 import (
 	"context"
-	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/Speakerkfm/iso/internal/app/command"
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
 
 func New(c *command.Command) *cobra.Command {
@@ -28,7 +28,7 @@ func handleRoot(c *command.Command) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 			if err := c.Root(ctx); err != nil {
-				handleError(err)
+				handleError(ctx, err)
 			}
 		},
 	}
@@ -47,7 +47,7 @@ func handleInit(c *command.Command) *cobra.Command {
 
 			ctx := context.Background()
 			if err := c.Init(ctx, path); err != nil {
-				handleError(err)
+				handleError(ctx, err)
 			}
 		},
 	}
@@ -66,12 +66,12 @@ func handleGenerate(c *command.Command) *cobra.Command {
 
 			ctx := context.Background()
 			if err := c.Generate(ctx, path); err != nil {
-				handleError(err)
+				handleError(ctx, err)
 			}
 		},
 	}
 }
 
-func handleError(err error) {
-	log.Fatal(err.Error())
+func handleError(ctx context.Context, err error) {
+	logger.Fatal(ctx, err.Error())
 }
