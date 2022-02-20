@@ -4,11 +4,22 @@ import (
 	"time"
 )
 
+const (
+	PluginName = "spec.so"
+)
+
+// PluginDesc сущность, которая хранит объекты для генерации плагина
+type PluginDesc struct {
+	ModuleName    string
+	Imports       []string
+	ProtoServices []*ProtoServiceDesc
+}
+
 // ExternalDependency сущность, которая хранит описание внешней зависимости
 type ExternalDependency struct {
 	Host       string   `yaml:"host"`
 	Name       string   `yaml:"name"`
-	ProtoPaths []string `yaml:"grpc,flow"`
+	ProtoPaths []string `yaml:"proto,flow"`
 }
 
 // ServiceSpecification сущность, которая содержит описание характеристики изолируемого сервиса

@@ -12,8 +12,7 @@ type Protoc interface {
 }
 
 type Golang interface {
-	CreateModule(wd, modName string) error
-	BuildPlugin(wd, outDir, buildFile string) error
+	BuildPlugin(wd, outDir, modName, buildFile string) error
 }
 
 type Command struct {

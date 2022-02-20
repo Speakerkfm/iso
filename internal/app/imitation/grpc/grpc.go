@@ -21,6 +21,14 @@ type Request struct {
 	ServiceName string
 	MethodName  string
 	Msg         proto.Message
+	Values      map[string]string
+}
+
+func (r *Request) GetValue(ctx context.Context, key string) (string, bool) {
+	if val, ok := r.Values[key]; ok {
+		return val, true
+	}
+	return "", false
 }
 
 type Response struct {
@@ -81,10 +89,10 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			Msg:         msg.ProtoReflect().New().Interface(),
 		}
 		if err := dec(in); err != nil {
-			logger.Errorf(ctx, "err: %+v\n", err)
+			logger.Errorf(ctx, "err: %+v", err)
 			return nil, err
 		}
-		logger.Infof(ctx, "in: %+v\n", in)
+		logger.Info(ctx, fmt.Sprintf("in: %+v", in))
 		if interceptor == nil {
 			return srv.(Handler).Handle(ctx, in)
 		}

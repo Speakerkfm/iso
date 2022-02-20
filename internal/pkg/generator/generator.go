@@ -12,14 +12,14 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
-	shared_models "github.com/Speakerkfm/iso/pkg/models"
+	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 // Generator генерирует файлы по шаблонам
 type Generator interface {
 	GenerateSpecificationData() ([]byte, error)
-	GenerateProtoPluginData(protoPlugin models.ProtoPluginDesc) ([]byte, error)
-	GenerateServiceConfigs(spec models.ServiceSpecification, svcProvider shared_models.ServiceProvider) ([]models.ServiceConfigDesc, error)
+	GeneratePluginData(pluginSpec models.PluginDesc) ([]byte, error)
+	GenerateServiceConfigs(spec models.ServiceSpecification, svcProvider public_models.ServiceProvider) ([]models.ServiceConfigDesc, error)
 }
 
 type generator struct {
@@ -35,18 +35,18 @@ func (g *generator) GenerateSpecificationData() ([]byte, error) {
 	return configTemplateExample, nil
 }
 
-// GenerateProtoPluginData генерирует .go файл прото плагина, который возвращает описание прото структур
-func (g *generator) GenerateProtoPluginData(protoPlugin models.ProtoPluginDesc) ([]byte, error) {
+// GeneratePluginData генерирует данные для .go файла плагина, который возвращает описание структур
+func (g *generator) GeneratePluginData(pluginSpec models.PluginDesc) ([]byte, error) {
 	buff := bytes.NewBuffer(nil)
-	if err := implTemplate.Execute(buff, protoPlugin); err != nil {
+	if err := implTemplate.Execute(buff, pluginSpec); err != nil {
 		return nil, err
 	}
 
 	return buff.Bytes(), nil
 }
 
-func (g *generator) GenerateServiceConfigs(spec models.ServiceSpecification, svcProvider shared_models.ServiceProvider) ([]models.ServiceConfigDesc, error) {
-	dataPathProtoService := make(map[string]*shared_models.ProtoService)
+func (g *generator) GenerateServiceConfigs(spec models.ServiceSpecification, svcProvider public_models.ServiceProvider) ([]models.ServiceConfigDesc, error) {
+	dataPathProtoService := make(map[string]*public_models.ProtoService)
 
 	for _, svc := range svcProvider.GetList() {
 		protoFileName := filepath.Base(svc.ProtoPath)
@@ -83,7 +83,7 @@ func (g *generator) GenerateServiceConfigs(spec models.ServiceSpecification, svc
 	return svcExamples, nil
 }
 
-func generateProtoHandlerConfig(protoSvc *shared_models.ProtoService, protoHandler shared_models.ProtoMethod) (models.HandlerConfigDesc, error) {
+func generateProtoHandlerConfig(protoSvc *public_models.ProtoService, protoHandler public_models.ProtoMethod) (models.HandlerConfigDesc, error) {
 	respStruct := protoHandler.ResponseStruct
 	if err := faker.FakeData(respStruct); err != nil {
 		return models.HandlerConfigDesc{}, fmt.Errorf("fail to generate fake data svc: %s, handler: %s, err: %w", protoSvc.Name, protoHandler.Name, err)

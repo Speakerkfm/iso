@@ -1,0 +1,15 @@
+service_name: UserService
+method_name: GetUser
+rules:
+  - conditions:
+      - key: body.id
+        value: 3
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"user": {
+        		"id": 3,
+        		"name": "pAMMgacJoNAJKQdTAtsPvHPur"
+        	}
+        }

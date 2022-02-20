@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 )
 
@@ -11,8 +12,8 @@ const (
 )
 
 // Request запрос в имитирующий сервис
-type Request struct {
-	Values map[string]string
+type Request interface {
+	GetValue(ctx context.Context, key string) (string, bool)
 }
 
 // Response ответ имитирующего сервиса

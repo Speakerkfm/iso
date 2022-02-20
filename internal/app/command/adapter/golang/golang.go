@@ -12,8 +12,8 @@ func New() *Golang {
 	return &Golang{}
 }
 
-func (g *Golang) CreateModule(wd, modName string) error {
-	cmdInit := exec.Command("go", "mod", "init", modName)
+func (g *Golang) BuildPlugin(wd, outDir, moduleName, buildFile string) error {
+	cmdInit := exec.Command("go", "mod", "init", moduleName)
 	cmdInit.Dir = wd
 
 	if err := cmdInit.Run(); err != nil {
@@ -27,10 +27,6 @@ func (g *Golang) CreateModule(wd, modName string) error {
 		return fmt.Errorf("fail to load deps: %w", err)
 	}
 
-	return nil
-}
-
-func (g *Golang) BuildPlugin(wd, outDir, buildFile string) error {
 	cmdBuildModule := exec.Command("go", "build", "-buildmode=plugin", "-o", outDir, buildFile)
 	cmdBuildModule.Dir = wd
 

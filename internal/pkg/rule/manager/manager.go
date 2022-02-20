@@ -7,6 +7,8 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
+type valueGetter func(ctx context.Context, key string) (string, bool)
+
 type manager struct {
 	ruleTree *models.RuleNode
 }
@@ -15,12 +17,12 @@ func New() *manager {
 	return &manager{}
 }
 
-func (m *manager) GetRule(ctx context.Context, req *models.Request) (*models.Rule, error) {
+func (m *manager) GetRule(ctx context.Context, req models.Request) (*models.Rule, error) {
 	currentNode := m.ruleTree
 	for currentNode.Rule == nil {
 		nextNodeFound := false
 		for _, nextNode := range currentNode.NextNodes {
-			if evalCondition(nextNode.Condition, req.Values) {
+			if evalCondition(ctx, req.GetValue, nextNode.Condition) {
 				nextNodeFound = true
 				currentNode = nextNode
 				break
@@ -91,8 +93,8 @@ func ruleToTreeBranch(rule *models.Rule) *models.RuleNode {
 	return previousNode
 }
 
-func evalCondition(cond models.Condition, values map[string]string) bool {
-	v, ok := values[cond.Key]
+func evalCondition(ctx context.Context, getValue valueGetter, cond models.Condition) bool {
+	v, ok := getValue(ctx, cond.Key)
 	if !ok {
 		return false
 	}

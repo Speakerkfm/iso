@@ -10,11 +10,11 @@ import (
 
 // Processor процессит все пришедшие запросы в имитирующий сервис
 type Processor interface {
-	Process(ctx context.Context, req *models.Request) (*models.Response, error)
+	Process(ctx context.Context, req models.Request) (*models.Response, error)
 }
 
 type RuleManager interface {
-	GetRule(ctx context.Context, req *models.Request) (*models.Rule, error)
+	GetRule(ctx context.Context, req models.Request) (*models.Rule, error)
 }
 
 type processor struct {
@@ -29,7 +29,7 @@ func New(ruleManager RuleManager) Processor {
 }
 
 // Process главный обработчик пришедшего запроса
-func (p *processor) Process(ctx context.Context, req *models.Request) (*models.Response, error) {
+func (p *processor) Process(ctx context.Context, req models.Request) (*models.Response, error) {
 	rule, err := p.ruleManager.GetRule(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("fail to get rule for request: %w", err)

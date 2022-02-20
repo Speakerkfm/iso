@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	protoHandlerDirName   = "grpc"
+	protoHandlerDirName   = "proto"
 	serviceConfigFileName = "service.yaml"
 )
 

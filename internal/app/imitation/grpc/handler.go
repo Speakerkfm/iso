@@ -35,9 +35,9 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("method: %s not registered", req.MethodName)
 	}
 
-	r := convertRequest(req)
+	fillRequest(req)
 
-	resp, err := h.processor.Process(ctx, r)
+	resp, err := h.processor.Process(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("fail to process request: %s", err.Error())
 	}
@@ -56,7 +56,7 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 	return protoResp, nil
 }
 
-func convertRequest(req *Request) *models.Request {
+func fillRequest(req *Request) {
 	values := make(map[string]string)
 	values[models.FieldHost] = "127.0.0.1:8001" // get from header
 	values[models.FieldServiceName] = req.ServiceName
@@ -66,10 +66,7 @@ func convertRequest(req *Request) *models.Request {
 	for idx := 0; idx < fields.Len(); idx++ {
 		values[getFieldName(fields.Get(idx))] = req.Msg.ProtoReflect().Get(fields.Get(idx)).String()
 	}
-
-	return &models.Request{
-		Values: values,
-	}
+	req.Values = values
 }
 
 func getFieldName(desc protoreflect.FieldDescriptor) string {

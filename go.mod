@@ -3,7 +3,7 @@ module github.com/Speakerkfm/iso
 go 1.16
 
 require (
-	github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220141940-1ced4128e45a
+	github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220164907-efb1577052d9
 	github.com/bxcodec/faker/v3 v3.7.0
 	github.com/emicklei/proto v1.9.1
 	github.com/satori/go.uuid v1.2.0

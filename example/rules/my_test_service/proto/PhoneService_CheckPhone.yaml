@@ -1,0 +1,12 @@
+service_name: PhoneService
+method_name: CheckPhone
+rules:
+  - conditions:
+      - key: header.x-request-id
+        value: '*'
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"exists": true
+        }
