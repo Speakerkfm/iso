@@ -2,7 +2,6 @@ package parser
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -11,12 +10,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
-)
-
-const (
-	protoHandlerDirName   = "proto"
-	serviceConfigFileName = "service.yaml"
 )
 
 type parser struct {
@@ -50,7 +45,7 @@ func (p *parser) ParseDirectory(ctx context.Context, directoryPath string) ([]mo
 
 		for _, serviceConfigFile := range serviceConfigFiles {
 			if isGRPCRulesDir(serviceConfigFile) {
-				currDir := path.Join(currDir, protoHandlerDirName)
+				currDir := path.Join(currDir, config.ProtoHandlerDirName)
 				handlerConfigFiles, err := ioutil.ReadDir(currDir)
 				if err != nil {
 					return nil, fmt.Errorf("fail to read dir: %s: %w", currDir, err)
@@ -91,49 +86,10 @@ func (p *parser) ParseDirectory(ctx context.Context, directoryPath string) ([]mo
 	return res, nil
 }
 
-// GenerateRules генерирует правила из конфигов сервисов
-func (p *parser) GenerateRules(svcConfigs []models.ServiceConfigDesc) []*models.Rule {
-	var res []*models.Rule
-	for _, svcConfig := range svcConfigs {
-		for _, handlerCfg := range svcConfig.GRPCHandlers {
-			for _, handlerRule := range handlerCfg.Rules {
-				r := &models.Rule{
-					Conditions: []models.Condition{
-						{
-							Key:   models.FieldHost,
-							Value: svcConfig.Host,
-						},
-						{
-							Key:   models.FieldServiceName,
-							Value: handlerCfg.ServiceName,
-						},
-						{
-							Key:   models.FieldMethodName,
-							Value: handlerCfg.MethodName,
-						},
-					},
-					HandlerConfig: &models.HandlerConfig{
-						ResponseDelay: handlerRule.Response.Delay,
-						MessageData:   json.RawMessage(handlerRule.Response.Data),
-					},
-				}
-				for _, cond := range handlerRule.Conditions {
-					r.Conditions = append(r.Conditions, models.Condition{
-						Key:   cond.Key,
-						Value: cond.Value,
-					})
-				}
-				res = append(res, r)
-			}
-		}
-	}
-	return res
-}
-
 func isGRPCRulesDir(file fs.FileInfo) bool {
-	return file.IsDir() && file.Name() == protoHandlerDirName
+	return file.IsDir() && file.Name() == config.ProtoHandlerDirName
 }
 
 func isServiceConfig(file fs.FileInfo) bool {
-	return !file.IsDir() && file.Name() == serviceConfigFileName
+	return !file.IsDir() && file.Name() == config.ServiceConfigFileName
 }

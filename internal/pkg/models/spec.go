@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-const (
-	PluginName = "spec.so"
-)
-
 // PluginDesc сущность, которая хранит объекты для генерации плагина
 type PluginDesc struct {
 	ModuleName    string

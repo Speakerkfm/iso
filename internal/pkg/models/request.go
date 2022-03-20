@@ -5,12 +5,6 @@ import (
 	"encoding/json"
 )
 
-const (
-	FieldHost        = "Host"
-	FieldServiceName = "ServiceName"
-	FieldMethodName  = "MethodName"
-)
-
 // Request запрос в имитирующий сервис
 type Request interface {
 	GetValue(ctx context.Context, key string) (string, bool)

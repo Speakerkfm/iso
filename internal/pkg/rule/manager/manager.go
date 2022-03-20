@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
@@ -18,6 +19,8 @@ func New() *manager {
 }
 
 func (m *manager) GetRule(ctx context.Context, req models.Request) (*models.Rule, error) {
+	logger.Infof(ctx, "Got request: %+v", req)
+
 	currentNode := m.ruleTree
 	for currentNode.Rule == nil {
 		nextNodeFound := false
@@ -51,8 +54,8 @@ func createRuleTree(rules []*models.Rule) *models.RuleNode {
 		currentTreeNode := headNode
 		currentBranchNode := branch
 
-		leastFound := false
-		for !leastFound {
+		leafFound := false
+		for !leafFound {
 			nextNodeFound := false
 			for _, nextNode := range currentTreeNode.NextNodes {
 				if isConditionEqual(nextNode.Condition, currentBranchNode.Condition) {
@@ -63,7 +66,7 @@ func createRuleTree(rules []*models.Rule) *models.RuleNode {
 				}
 			}
 			if !nextNodeFound {
-				leastFound = true
+				leafFound = true
 			}
 		}
 

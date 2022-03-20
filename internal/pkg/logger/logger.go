@@ -13,6 +13,14 @@ func Infof(ctx context.Context, msg string, args ...interface{}) {
 	log.Printf(msg, args...)
 }
 
+func Warn(ctx context.Context, msg string) {
+	log.Println(msg)
+}
+
+func Warnf(ctx context.Context, msg string, args ...interface{}) {
+	log.Printf(msg, args...)
+}
+
 func Fatal(ctx context.Context, msg string) {
 	log.Fatalln(msg)
 }

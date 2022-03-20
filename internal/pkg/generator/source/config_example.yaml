@@ -1,6 +1,15 @@
 external_dependencies:
-  - name: my_test_service
-    host: 127.0.0.1:8001
+  - name: user_service
+    host: user-api.localhost
     proto:
-      - /Users/usanin/Documents/go_projects/test_cmd/pb/service_b.proto
-      - /Users/usanin/Documents/go_projects/test_cmd/pb/service_c.proto
+      - /Users/usanin/Documents/go_projects/iso_example/user-api/api/user_api.proto
+
+  - name: address_service
+    host: address-api.localhost
+    proto:
+      - /Users/usanin/Documents/go_projects/iso_example/address-api/api/address_api.proto
+
+  - name: shipment_service
+    host: shipment-api.localhost
+    proto:
+      - /Users/usanin/Documents/go_projects/iso_example/shipment-api/api/shipment_api.proto

@@ -1,8 +1,11 @@
 package golang
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
+
+	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
 
 type Golang struct {
@@ -30,6 +33,7 @@ func (g *Golang) BuildPlugin(wd, outDir, moduleName, buildFile string) error {
 	cmdBuildModule := exec.Command("go", "build", "-buildmode=plugin", "-o", outDir, buildFile)
 	cmdBuildModule.Dir = wd
 
+	logger.Infof(context.Background(), "Exec: %s", cmdBuildModule.String())
 	if err := cmdBuildModule.Run(); err != nil {
 		return fmt.Errorf("fail to build plugin: %w", err)
 	}

@@ -7,26 +7,21 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
 
-const (
-	defaultPath = "."
-
-	configFileName = "spec.yaml"
-)
-
-func (c *Command) Init(ctx context.Context, path string) error {
+func (c *Command) Init(ctx context.Context, dir string) error {
 	specData, err := c.gen.GenerateSpecificationData()
 	if err != nil {
 		return fmt.Errorf("fail to generate config data: %w", err)
 	}
 
-	if path == "" {
-		path = defaultPath
+	if dir == "" {
+		dir = config.DefaultProjectDir
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(path, configFileName), specData, fs.ModePerm); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(dir, config.SpecificationFileName), specData, fs.ModePerm); err != nil {
 		return fmt.Errorf("fail to save spec data to file: %w", err)
 	}
 

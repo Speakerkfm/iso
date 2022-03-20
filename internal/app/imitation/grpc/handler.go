@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"google.golang.org/protobuf/reflect/protoreflect"
-
-	"github.com/Speakerkfm/iso/internal/pkg/models"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 )
 
@@ -35,7 +32,9 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("method: %s not registered", req.MethodName)
 	}
 
-	fillRequest(req)
+	if err := fillRequest(req); err != nil {
+		return nil, fmt.Errorf("fail to fill req: %w", err)
+	}
 
 	resp, err := h.processor.Process(ctx, req)
 	if err != nil {
@@ -54,21 +53,4 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 	// save in store by message id
 
 	return protoResp, nil
-}
-
-func fillRequest(req *Request) {
-	values := make(map[string]string)
-	values[models.FieldHost] = "127.0.0.1:8001" // get from header
-	values[models.FieldServiceName] = req.ServiceName
-	values[models.FieldMethodName] = req.MethodName
-
-	fields := req.Msg.ProtoReflect().Descriptor().Fields()
-	for idx := 0; idx < fields.Len(); idx++ {
-		values[getFieldName(fields.Get(idx))] = req.Msg.ProtoReflect().Get(fields.Get(idx)).String()
-	}
-	req.Values = values
-}
-
-func getFieldName(desc protoreflect.FieldDescriptor) string {
-	return fmt.Sprintf("body.%s", desc.Name())
 }

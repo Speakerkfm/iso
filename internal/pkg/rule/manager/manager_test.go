@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
@@ -27,15 +28,15 @@ func TestManager_GetHandlerConfig(t *testing.T) {
 var rule1 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   models.FieldHost,
+			Key:   config.RequestFieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   models.FieldServiceName,
+			Key:   config.RequestFieldServiceName,
 			Value: "UserService",
 		},
 		{
-			Key:   models.FieldMethodName,
+			Key:   config.RequestFieldMethodName,
 			Value: "GetUser",
 		},
 		{
@@ -51,15 +52,15 @@ var rule1 = &models.Rule{
 var rule2 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   models.FieldHost,
+			Key:   config.RequestFieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   models.FieldServiceName,
+			Key:   config.RequestFieldServiceName,
 			Value: "UserService",
 		},
 		{
-			Key:   models.FieldMethodName,
+			Key:   config.RequestFieldMethodName,
 			Value: "GetUser",
 		},
 		{
@@ -75,15 +76,15 @@ var rule2 = &models.Rule{
 var rule3 = &models.Rule{
 	Conditions: []models.Condition{
 		{
-			Key:   models.FieldHost,
+			Key:   config.RequestFieldHost,
 			Value: "127.0.0.1",
 		},
 		{
-			Key:   models.FieldServiceName,
+			Key:   config.RequestFieldServiceName,
 			Value: "PhoneService",
 		},
 		{
-			Key:   models.FieldMethodName,
+			Key:   config.RequestFieldMethodName,
 			Value: "CheckPhone",
 		},
 		{
@@ -102,19 +103,19 @@ func createTestRuleTree() *models.RuleNode {
 		NextNodes: []*models.RuleNode{
 			{
 				Condition: models.Condition{
-					Key:   models.FieldHost,
+					Key:   config.RequestFieldHost,
 					Value: "127.0.0.1",
 				},
 				NextNodes: []*models.RuleNode{
 					{
 						Condition: models.Condition{
-							Key:   models.FieldServiceName,
+							Key:   config.RequestFieldServiceName,
 							Value: "UserService",
 						},
 						NextNodes: []*models.RuleNode{
 							{
 								Condition: models.Condition{
-									Key:   models.FieldMethodName,
+									Key:   config.RequestFieldMethodName,
 									Value: "GetUser",
 								},
 								NextNodes: []*models.RuleNode{
@@ -138,13 +139,13 @@ func createTestRuleTree() *models.RuleNode {
 					},
 					{
 						Condition: models.Condition{
-							Key:   models.FieldServiceName,
+							Key:   config.RequestFieldServiceName,
 							Value: "PhoneService",
 						},
 						NextNodes: []*models.RuleNode{
 							{
 								Condition: models.Condition{
-									Key:   models.FieldMethodName,
+									Key:   config.RequestFieldMethodName,
 									Value: "CheckPhone",
 								},
 								NextNodes: []*models.RuleNode{

@@ -1,0 +1,16 @@
+service_name: AddressService
+method_name: GetUserAddress
+rules:
+  - conditions:
+      - key: header.x-request-id
+        value: '*'
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"address": {
+        		"id": 89,
+        		"city": "qDKWDrHtBaHXyHbpRAuBFcsIb",
+        		"zip_code": "bnrxaCaxnACHZxRIsxUNeQxQZ"
+        	}
+        }

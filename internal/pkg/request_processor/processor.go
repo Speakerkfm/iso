@@ -52,6 +52,3 @@ func waitDelay(ctx context.Context, delay time.Duration) error {
 	}
 	return nil
 }
-
-// `{"exists":true}`
-// `{"user":{"id":10,"name":"kek"}}`

@@ -16,6 +16,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220164907-efb1577052d9 h1:LKDzo7uRQMrr+wG1VP3BW7OvMqnkfq8yMAEa+O7aOEU=
 github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220164907-efb1577052d9/go.mod h1:SV77Dkxcgwv3tG3EvjqRaRqgEsJpkXlxUbYoZ50ff6o=
+github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220190324-c1cb6a0700d3 h1:p0INuCKWwSzi+uXcmn66bEloC8MN8m5UK6qvJh4O2mc=
+github.com/Speakerkfm/iso/pkg/models v0.0.0-20220220190324-c1cb6a0700d3/go.mod h1:SV77Dkxcgwv3tG3EvjqRaRqgEsJpkXlxUbYoZ50ff6o=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=

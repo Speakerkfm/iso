@@ -12,26 +12,24 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 	"github.com/Speakerkfm/iso/internal/pkg/util"
 	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
-const (
-	pluginGoFile     = "spec.go"
-	pluginModuleName = "iso_proto"
-)
-
-func (c *Command) Generate(ctx context.Context, specPath string) error {
+// Generate - генерирует все необходимые данные (список правил, конфиг прокси и плагин) для проекта в указанной директории
+func (c *Command) Generate(ctx context.Context, dir string) error {
 	cmdExecDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("fail to get cmd exec dir: %w", err)
 	}
-	currDir := filepath.Join(cmdExecDir, filepath.Dir(specPath))
-	logger.Infof(ctx, "Current directory: %s", currDir)
+	projectFullDir := filepath.Join(cmdExecDir, dir)
+	logger.Infof(ctx, "Current project directory: %s", projectFullDir)
 
 	logger.Info(ctx, "Loading specification...")
+	specPath := filepath.Join(projectFullDir, config.SpecificationFileName)
 	spec, err := c.loadSpec(specPath)
 	if err != nil {
 		return fmt.Errorf("fail to load specification from path %s: %w", specPath, err)
@@ -44,38 +42,43 @@ func (c *Command) Generate(ctx context.Context, specPath string) error {
 	}
 	logger.Infof(ctx, "Found %d proto files", len(protoFiles))
 
-	wd := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
-	if err := os.MkdirAll(wd, fs.ModePerm); err != nil {
-		return fmt.Errorf("fail to make temp dir %s: %w", wd, err)
+	tempDir := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
+	if err := os.MkdirAll(tempDir, fs.ModePerm); err != nil {
+		return fmt.Errorf("fail to make temp dir %s: %w", tempDir, err)
 	}
-	logger.Infof(ctx, "Temp directory: %s", wd)
+	logger.Infof(ctx, "Temp directory: %s", tempDir)
 
 	logger.Info(ctx, "Processing spec files...")
-	pluginSpec, err := c.processSpecFiles(ctx, wd, protoFiles)
+	pluginSpec, err := c.processSpecFiles(ctx, tempDir, protoFiles)
 	if err != nil {
 		return fmt.Errorf("fail to process spec files: %w", err)
 	}
 
-	logger.Info(ctx, "Generating plugin data...")
+	logger.Info(ctx, "Generating data for plugin...")
 	pluginData, err := c.gen.GeneratePluginData(pluginSpec)
 	if err != nil {
-		return fmt.Errorf("fail to generate proto plugin: %w", err)
+		return fmt.Errorf("fail to generate data for plugin: %w", err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(wd, pluginGoFile), pluginData, fs.ModePerm); err != nil {
-		return fmt.Errorf("fail to save plugin data to file: %w", err)
+	if err := ioutil.WriteFile(filepath.Join(tempDir, config.PluginGoFileName), pluginData, fs.ModePerm); err != nil {
+		return fmt.Errorf("fail to save data for plugin to file: %w", err)
 	}
-	logger.Info(ctx, "Plugin data generated")
+	logger.Info(ctx, "Data for plugin was generated")
 
 	logger.Info(ctx, "Building spec plugin...")
-	if err := c.golang.BuildPlugin(wd, currDir, pluginModuleName, pluginGoFile); err != nil {
-		return fmt.Errorf("fail to build proto plugin: %w", err)
+	if err := c.golang.BuildPlugin(tempDir, projectFullDir, config.PluginModuleName, config.PluginGoFileName); err != nil {
+		return fmt.Errorf("fail to build spec plugin: %w", err)
 	}
-	logger.Info(ctx, "Proto plugin generated")
+	logger.Info(ctx, "Plugin was generated")
 
 	logger.Info(ctx, "Generating rule examples....")
-	if err := c.generateRuleExamples(ctx, spec, currDir); err != nil {
+	if err := c.generateRuleExamples(ctx, spec, projectFullDir); err != nil {
 		return fmt.Errorf("fail to generate rules example: %w", err)
+	}
+
+	logger.Infof(ctx, "Generating reverse proxy config...")
+	if err := c.generateReverseProxyConfig(projectFullDir); err != nil {
+		return fmt.Errorf("fail to generate reverse proxy config: %w", err)
 	}
 
 	logger.Info(ctx, "Done")
@@ -109,7 +112,7 @@ func (c *Command) processSpec(spec models.ServiceSpecification) ([]*models.Proto
 				Name:         fileName,
 				PkgName:      pkgName,
 				OriginalPath: protoPath,
-				Path:         fmt.Sprintf("%s/%s", pkgName, fileName),
+				Path:         fmt.Sprintf("%s/%s", pkgName, fileName), // TODO подумать: один прото файл у нескольких сервисов
 			})
 		}
 	}
@@ -117,10 +120,10 @@ func (c *Command) processSpec(spec models.ServiceSpecification) ([]*models.Proto
 	return protoFiles, nil
 }
 
-func (c *Command) processSpecFiles(ctx context.Context, wd string, protoFiles []*models.ProtoFileData) (models.PluginDesc, error) {
+func (c *Command) processSpecFiles(ctx context.Context, tempDir string, protoFiles []*models.ProtoFileData) (models.PluginDesc, error) {
 	var err error
 	protoPlugin := models.PluginDesc{
-		ModuleName: pluginModuleName,
+		ModuleName: config.PluginModuleName,
 	}
 
 	processedServices := make(map[string]struct{})
@@ -132,17 +135,17 @@ func (c *Command) processSpecFiles(ctx context.Context, wd string, protoFiles []
 			return models.PluginDesc{}, err
 		}
 
-		protoDir := filepath.Join(wd, protoFile.PkgName)
+		protoDir := filepath.Join(tempDir, protoFile.PkgName)
 		if err := os.MkdirAll(protoDir, fs.ModePerm); err != nil {
 			return models.PluginDesc{}, err
 		}
 
-		if err := ioutil.WriteFile(filepath.Join(wd, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(tempDir, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
 			return models.PluginDesc{}, err
 		}
 
 		logger.Infof(ctx, "Processing %s file with protoc...", protoFile.OriginalPath)
-		if err := c.protoc.Process(wd, protoFile); err != nil {
+		if err := c.protoc.Process(tempDir, protoFile); err != nil {
 			return models.PluginDesc{}, err
 		}
 
@@ -172,7 +175,7 @@ func (c *Command) processSpecFiles(ctx context.Context, wd string, protoFiles []
 }
 
 func (c *Command) generateRuleExamples(ctx context.Context, spec models.ServiceSpecification, path string) error {
-	svcProvider, err := loadPluginData(ctx, filepath.Join(path, models.PluginName))
+	svcProvider, err := loadPluginData(ctx, filepath.Join(path, config.PluginFileName))
 	if err != nil {
 		return fmt.Errorf("fail to load plugin data: %w", err)
 	}
@@ -182,8 +185,12 @@ func (c *Command) generateRuleExamples(ctx context.Context, spec models.ServiceS
 		return fmt.Errorf("fail to generate svc cfgs: %w", err)
 	}
 
-	currDir := filepath.Join(path, "rules")
+	currDir := filepath.Join(path, config.RulesDir)
 	if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
+		if os.IsExist(err) {
+			logger.Warnf(ctx, "directory %s already exists, skip generating", currDir)
+			return nil
+		}
 		return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
 	}
 
@@ -192,11 +199,11 @@ func (c *Command) generateRuleExamples(ctx context.Context, spec models.ServiceS
 		if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
 			return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
 		}
-		if err := encodeDataToYamlFile(svcCfg, currDir, "service.yaml"); err != nil {
+		if err := encodeDataToYamlFile(svcCfg, currDir, config.ServiceConfigFileName); err != nil {
 			return fmt.Errorf("fail to encode data to yaml: %w", err)
 		}
 		if len(svcCfg.GRPCHandlers) > 0 {
-			currDir := filepath.Join(currDir, "proto")
+			currDir := filepath.Join(currDir, config.ProtoHandlerDirName)
 			if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
 				return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
 			}
@@ -207,6 +214,19 @@ func (c *Command) generateRuleExamples(ctx context.Context, spec models.ServiceS
 				}
 			}
 		}
+	}
+
+	return nil
+}
+
+func (c *Command) generateReverseProxyConfig(path string) error {
+	reverseProxyConfigData, err := c.gen.GenerateReverseProxyConfigData()
+	if err != nil {
+		return fmt.Errorf("fail to generate reverse proxy config data: %w", err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(path, config.ReverseProxyConfigFileName), reverseProxyConfigData, fs.ModePerm); err != nil {
+		return fmt.Errorf("fail to save reverse proxy config data to file: %w", err)
 	}
 
 	return nil

@@ -16,21 +16,6 @@ type Handler interface {
 	Handle(ctx context.Context, req *Request) (*Response, error)
 }
 
-type Request struct {
-	Context     context.Context
-	ServiceName string
-	MethodName  string
-	Msg         proto.Message
-	Values      map[string]string
-}
-
-func (r *Request) GetValue(ctx context.Context, key string) (string, bool) {
-	if val, ok := r.Values[key]; ok {
-		return val, true
-	}
-	return "", false
-}
-
 type Response struct {
 	msg       proto.Message
 	lazyBytes []byte
@@ -84,6 +69,7 @@ func (h *handler) registerService(svc *models.ProtoService) *grpc.ServiceDesc {
 func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	return func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 		in := &Request{
+			Context:     ctx,
 			ServiceName: serviceName,
 			MethodName:  methodName,
 			Msg:         msg.ProtoReflect().New().Interface(),
@@ -92,7 +78,7 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			logger.Errorf(ctx, "err: %+v", err)
 			return nil, err
 		}
-		logger.Info(ctx, fmt.Sprintf("in: %+v", in))
+
 		if interceptor == nil {
 			return srv.(Handler).Handle(ctx, in)
 		}
