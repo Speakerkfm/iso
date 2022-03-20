@@ -4,7 +4,7 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/fetcher"
 	"github.com/Speakerkfm/iso/internal/pkg/generator"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
-	"github.com/Speakerkfm/iso/internal/pkg/proto_parser"
+	"github.com/Speakerkfm/iso/internal/pkg/parser/proto"
 )
 
 type Protoc interface {
@@ -18,12 +18,12 @@ type Golang interface {
 type Command struct {
 	gen         generator.Generator
 	fileFetcher fetcher.FileFetcher
-	protoParser proto_parser.Parser
+	protoParser proto.Parser
 	protoc      Protoc
 	golang      Golang
 }
 
-func New(g generator.Generator, ff fetcher.FileFetcher, pc Protoc, pp proto_parser.Parser, golang Golang) *Command {
+func New(g generator.Generator, ff fetcher.FileFetcher, pc Protoc, pp proto.Parser, golang Golang) *Command {
 	return &Command{
 		gen:         g,
 		fileFetcher: ff,

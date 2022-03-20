@@ -164,7 +164,7 @@ func (g *generator) generateProtoHandlerConfig(protoSvc *public_models.ProtoServ
 			{
 				Conditions: []models.HandlerConditionDesc{
 					{
-						Key:   config.RequestHeaderReqID,
+						Key:   config.RequestFieldReqID,
 						Value: "*",
 					},
 				},

@@ -15,7 +15,7 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/fetcher"
 	"github.com/Speakerkfm/iso/internal/pkg/generator"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
-	"github.com/Speakerkfm/iso/internal/pkg/proto_parser"
+	"github.com/Speakerkfm/iso/internal/pkg/parser/proto"
 )
 
 const (
@@ -31,7 +31,7 @@ func main() {
 	g := generator.New()
 	ff := fetcher.New()
 	pc := protoc.New()
-	pp := proto_parser.New()
+	pp := proto.New()
 	glng := golang.New()
 
 	cmd := command.New(g, ff, pc, pp, glng)

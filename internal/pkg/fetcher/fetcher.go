@@ -2,7 +2,9 @@ package fetcher
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 )
 
@@ -14,8 +16,7 @@ type fetcher struct {
 }
 
 func New() *fetcher {
-	return &fetcher{
-	}
+	return &fetcher{}
 }
 
 // FetchFile загружает файл по указанному пути
@@ -31,9 +32,17 @@ func (f *fetcher) fetchLocalFile(ctx context.Context, filePath string) ([]byte, 
 }
 
 func (f *fetcher) fetchWebFile(ctx context.Context, filePath string) ([]byte, error) {
-	return nil, nil
+	if !strings.HasPrefix(filePath, "http") {
+		filePath = fmt.Sprintf("http://%s", filePath)
+	}
+	resp, err := http.Get(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("fail to get file from web: %w", err)
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }
 
 func isFilePathWeb(path string) bool {
-	return strings.HasPrefix(path, "http")
+	return !strings.HasPrefix(path, "/")
 }

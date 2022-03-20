@@ -14,7 +14,7 @@ type Imitation struct {
 	grpcServer *grpc.Server
 }
 
-func New(processor request_processor.Processor,protoServices []*models.ProtoService) *Imitation {
+func New(processor request_processor.Processor, protoServices []*models.ProtoService) *Imitation {
 	grpcServer := grpc_server.New(processor, protoServices)
 
 	return &Imitation{

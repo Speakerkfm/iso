@@ -1,4 +1,4 @@
-package proto_parser
+package proto
 
 import (
 	"bytes"

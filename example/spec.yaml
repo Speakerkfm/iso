@@ -2,14 +2,14 @@ external_dependencies:
   - name: user_service
     host: user-api.localhost
     proto:
-      - /Users/usanin/Documents/go_projects/iso_example/user-api/api/user_api.proto
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/user-api/api/user_api.proto
 
   - name: address_service
     host: address-api.localhost
     proto:
-      - /Users/usanin/Documents/go_projects/iso_example/address-api/api/address_api.proto
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/address-api/api/address_api.proto
 
   - name: shipment_service
     host: shipment-api.localhost
     proto:
-      - /Users/usanin/Documents/go_projects/iso_example/shipment-api/api/shipment_api.proto
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/shipment-api/api/shipment_api.proto
