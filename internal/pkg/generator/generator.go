@@ -39,13 +39,13 @@ func New() Generator {
 
 // GenerateSpecificationData генерирует пример файла спецификации
 func (g *generator) GenerateSpecificationData() ([]byte, error) {
-	return configTemplateExample, nil
+	return specExampleSource, nil
 }
 
 // GeneratePluginData генерирует данные для .go файла плагина, который возвращает описание структур
 func (g *generator) GeneratePluginData(pluginSpec models.PluginDesc) ([]byte, error) {
 	buff := bytes.NewBuffer(nil)
-	if err := implTemplate.Execute(buff, pluginSpec); err != nil {
+	if err := specPluginTemplate.Execute(buff, pluginSpec); err != nil {
 		return nil, err
 	}
 

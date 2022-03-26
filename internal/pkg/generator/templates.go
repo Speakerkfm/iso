@@ -5,15 +5,15 @@ import (
 	"text/template"
 )
 
-//go:embed source/config_example.yaml
-var configTemplateExample []byte
+//go:embed source/spec_example.yaml
+var specExampleSource []byte
 
-//go:embed source/impl.tmpl
-var implTemplateSource string
+//go:embed source/spec_plugin.tmpl
+var specPluginTemplateSource string
 
 //go:embed source/reverse_proxy.tmpl
 var reverseProxyConfigTemplateSource string
 
-var implTemplate = template.Must(template.New("impl").Parse(implTemplateSource))
+var specPluginTemplate = template.Must(template.New("spec_plugin").Parse(specPluginTemplateSource))
 
 var reverseProxyConfigTemplate = template.Must(template.New("reverse_proxy").Parse(reverseProxyConfigTemplateSource))

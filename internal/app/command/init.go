@@ -11,6 +11,7 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 )
 
+// Init - создает проект в указанной директории
 func (c *Command) Init(ctx context.Context, dir string) error {
 	specData, err := c.gen.GenerateSpecificationData()
 	if err != nil {

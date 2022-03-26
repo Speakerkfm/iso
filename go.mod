@@ -14,6 +14,8 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20211223182754-3ac035c7e7cb // indirect
 	google.golang.org/grpc v1.43.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
+
+replace github.com/Speakerkfm/iso/pkg/models v0.0.1 => ./pkg/models

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
-	"github.com/Speakerkfm/iso/pkg/models"
+	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 type Handler interface {
@@ -30,7 +30,7 @@ type Method struct {
 	RespStruct proto.Message
 }
 
-func New(processor request_processor.Processor, services []*models.ProtoService) *grpc.Server {
+func New(processor request_processor.Processor, services []*public_models.ProtoService) *grpc.Server {
 	srv := grpc.NewServer(grpc.ForceServerCodec(codec{}))
 	h := NewHandler(processor)
 	for _, svc := range services {
@@ -42,7 +42,7 @@ func New(processor request_processor.Processor, services []*models.ProtoService)
 	return srv
 }
 
-func (h *handler) registerService(svc *models.ProtoService) *grpc.ServiceDesc {
+func (h *handler) registerService(svc *public_models.ProtoService) *grpc.ServiceDesc {
 	grpcMethods := make([]grpc.MethodDesc, 0, len(svc.Methods))
 	methods := make(map[string]Method, len(svc.Methods))
 	for _, method := range svc.Methods {
@@ -75,7 +75,7 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			Msg:         msg.ProtoReflect().New().Interface(),
 		}
 		if err := dec(in); err != nil {
-			logger.Errorf(ctx, "err: %+v", err)
+			logger.Errorf(ctx, "fail to decode incoming req: %s", err.Error())
 			return nil, err
 		}
 

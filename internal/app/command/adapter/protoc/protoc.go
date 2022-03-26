@@ -16,9 +16,10 @@ func New() *Protoc {
 	return &Protoc{}
 }
 
-func (p *Protoc) Process(wd string, protoFile *models.ProtoFileData) error {
+// Process - запускает protoc для указанного файла
+func (p *Protoc) Process(dir string, protoFile *models.ProtoFileData) error {
 	cmd := exec.Command("protoc", "--go_out=.", "--go_opt=paths=source_relative", protoFile.Path)
-	cmd.Dir = wd
+	cmd.Dir = dir
 
 	logger.Infof(context.Background(), "Exec: %s", cmd.String())
 	if err := cmd.Run(); err != nil {

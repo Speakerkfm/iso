@@ -23,7 +23,7 @@ func New(c *command.Command) *cobra.Command {
 func handleRoot(c *command.Command) *cobra.Command {
 	return &cobra.Command{
 		Use:   "iso",
-		Short: "Iso is a tool for grpc mocking",
+		Short: "Iso is a tool for mocking web interfaces by generated data from specification files",
 		Long:  `...`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()

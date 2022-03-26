@@ -18,6 +18,7 @@ func New() *manager {
 	return &manager{}
 }
 
+// GetRule - ищет правило, которое соответствует пришедшему запросу
 func (m *manager) GetRule(ctx context.Context, req models.Request) (*models.Rule, error) {
 	logger.Infof(ctx, "Got request: %+v", req)
 

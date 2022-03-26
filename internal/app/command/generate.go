@@ -15,7 +15,6 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
-	"github.com/Speakerkfm/iso/internal/pkg/util"
 	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
@@ -42,14 +41,13 @@ func (c *Command) Generate(ctx context.Context, dir string) error {
 	}
 	logger.Infof(ctx, "Found %d proto files", len(protoFiles))
 
-	tempDir := fmt.Sprintf("%s%s", os.TempDir(), util.NewUUID())
-	if err := os.MkdirAll(tempDir, fs.ModePerm); err != nil {
-		return fmt.Errorf("fail to make temp dir %s: %w", tempDir, err)
+	pluginDir := filepath.Join(projectFullDir, config.PluginDir)
+	if err := os.MkdirAll(pluginDir, fs.ModePerm); err != nil {
+		return fmt.Errorf("fail to make plugin dir %s: %w", pluginDir, err)
 	}
-	logger.Infof(ctx, "Temp directory: %s", tempDir)
 
 	logger.Info(ctx, "Processing spec files...")
-	pluginSpec, err := c.processSpecFiles(ctx, tempDir, protoFiles)
+	pluginSpec, err := c.processSpecFiles(ctx, pluginDir, protoFiles)
 	if err != nil {
 		return fmt.Errorf("fail to process spec files: %w", err)
 	}
@@ -60,14 +58,14 @@ func (c *Command) Generate(ctx context.Context, dir string) error {
 		return fmt.Errorf("fail to generate data for plugin: %w", err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(tempDir, config.PluginGoFileName), pluginData, fs.ModePerm); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(pluginDir, config.PluginGoFileName), pluginData, fs.ModePerm); err != nil {
 		return fmt.Errorf("fail to save data for plugin to file: %w", err)
 	}
 	logger.Info(ctx, "Data for plugin was generated")
 
 	logger.Info(ctx, "Building spec plugin...")
-	if err := c.golang.BuildPlugin(tempDir, projectFullDir, config.PluginModuleName, config.PluginGoFileName); err != nil {
-		return fmt.Errorf("fail to build spec plugin: %w", err)
+	if err := c.buildPlugin(pluginDir, projectFullDir); err != nil {
+		return fmt.Errorf("fail to build plugin: %w", err)
 	}
 	logger.Info(ctx, "Plugin was generated")
 
@@ -101,6 +99,13 @@ func (c *Command) loadSpec(path string) (models.ServiceSpecification, error) {
 	return spec, nil
 }
 
+func (c *Command) buildPlugin(pluginDir, projectFullDir string) error {
+	if err := c.golang.BuildPlugin(pluginDir, projectFullDir, config.PluginModuleName, config.PluginGoFileName); err != nil {
+		return fmt.Errorf("fail to build with golang: %w", err)
+	}
+	return nil
+}
+
 func (c *Command) processSpec(spec models.ServiceSpecification) ([]*models.ProtoFileData, error) {
 	var protoFiles []*models.ProtoFileData
 
@@ -120,7 +125,7 @@ func (c *Command) processSpec(spec models.ServiceSpecification) ([]*models.Proto
 	return protoFiles, nil
 }
 
-func (c *Command) processSpecFiles(ctx context.Context, tempDir string, protoFiles []*models.ProtoFileData) (models.PluginDesc, error) {
+func (c *Command) processSpecFiles(ctx context.Context, pluginDir string, protoFiles []*models.ProtoFileData) (models.PluginDesc, error) {
 	var err error
 	protoPlugin := models.PluginDesc{
 		ModuleName: config.PluginModuleName,
@@ -135,17 +140,17 @@ func (c *Command) processSpecFiles(ctx context.Context, tempDir string, protoFil
 			return models.PluginDesc{}, err
 		}
 
-		protoDir := filepath.Join(tempDir, protoFile.PkgName)
+		protoDir := filepath.Join(pluginDir, protoFile.PkgName)
 		if err := os.MkdirAll(protoDir, fs.ModePerm); err != nil {
 			return models.PluginDesc{}, err
 		}
 
-		if err := ioutil.WriteFile(filepath.Join(tempDir, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(pluginDir, protoFile.Path), protoFile.RawData, fs.ModePerm); err != nil {
 			return models.PluginDesc{}, err
 		}
 
 		logger.Infof(ctx, "Processing %s file with protoc...", protoFile.OriginalPath)
-		if err := c.protoc.Process(tempDir, protoFile); err != nil {
+		if err := c.protoc.Process(pluginDir, protoFile); err != nil {
 			return models.PluginDesc{}, err
 		}
 

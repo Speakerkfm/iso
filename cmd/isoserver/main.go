@@ -18,7 +18,7 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 	"github.com/Speakerkfm/iso/internal/pkg/rule/manager"
 	rule_parser "github.com/Speakerkfm/iso/internal/pkg/rule/parser"
-	shared_models "github.com/Speakerkfm/iso/pkg/models"
+	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 const (
@@ -40,15 +40,15 @@ func main() {
 
 	plug, err := plugin.Open(pluginPath)
 	if err != nil {
-		logger.Fatalf(appCtx, "fail to open plugin: %s, err: %w", pluginPath, err)
+		logger.Fatalf(appCtx, "fail to open plugin: %s, err: %s", pluginPath, err.Error())
 	}
 
-	svcs, err := plug.Lookup(shared_models.ServiceProviderName)
+	svcs, err := plug.Lookup(public_models.ServiceProviderName)
 	if err != nil {
 		logger.Fatalf(appCtx, "fail too look up ServiceProvider in plugin: %s", err.Error())
 	}
 
-	s, ok := svcs.(shared_models.ServiceProvider)
+	s, ok := svcs.(public_models.ServiceProvider)
 	if !ok {
 		logger.Fatalf(appCtx, "fail to get proto description from module")
 	}

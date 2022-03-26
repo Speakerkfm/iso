@@ -2,19 +2,6 @@ service_name: AddressService
 method_name: GetUserAddress
 rules:
   - conditions:
-      - key: body.user_id
-        value: 10
-    response:
-      delay: 5ms
-      data: |-
-        {
-        	"address": {
-        		"id": 123,
-        		"city": "Perm",
-        		"zip_code": "614087"
-        	}
-        }
-  - conditions:
       - key: header.x-request-id
         value: '*'
     response:
@@ -22,8 +9,8 @@ rules:
       data: |-
         {
         	"address": {
-        		"id": 21,
-        		"city": "jfjElhJhlAKYfDPiCixqpDyba",
-        		"zip_code": "CIaZddjQKfgsxwrqSSSFsnWBT"
+        		"id": 20,
+        		"city": "ZsbxEVJQgVEypJNqkkSjwVqIM",
+        		"zip_code": "aEuCNwPyajATmqjxarfSwZorM"
         	}
         }

@@ -1,0 +1,16 @@
+# Данный файл содержит описание внешних зависимостей изолируемого сервиса
+external_dependencies:
+  - name: user_service        # Имя внешней зависимости
+    host: user-api.localhost  # Хост 
+    proto:
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/user-api/api/user_api.proto
+
+  - name: address_service
+    host: address-api.localhost
+    proto:
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/address-api/api/address_api.proto
+
+  - name: shipment_service
+    host: shipment-api.localhost
+    proto:
+      - raw.githubusercontent.com/Speakerkfm/iso_example/master/shipment-api/api/shipment_api.proto

@@ -2,19 +2,6 @@ service_name: UserService
 method_name: GetUser
 rules:
   - conditions:
-      - key: body.id
-        value: 10
-    response:
-      delay: 3s
-      data: |-
-        {
-        	"user": {
-        		"id": 10,
-        		"name": "Aleksandr",
-        		"surname": "Usanin"
-        	}
-        }
-  - conditions:
       - key: header.x-request-id
         value: '*'
     response:
@@ -22,8 +9,8 @@ rules:
       data: |-
         {
         	"user": {
-        		"id": 16,
-        		"name": "JcqVSoyoMmTaJaQyqnPkeMOVT",
-        		"surname": "OqMYqZsXTWhKUbFhxLIoMTkkM"
+        		"id": 75,
+        		"name": "gGMHNUsegcjlODNdQXTmskeqK",
+        		"surname": "ysHGZDFfiPuPvZvtHXrdeJprR"
         	}
         }

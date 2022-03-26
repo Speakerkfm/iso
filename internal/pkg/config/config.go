@@ -17,7 +17,8 @@ const (
 
 	PluginFileName   = "spec.so"
 	PluginGoFileName = "spec.go"
-	PluginModuleName = "iso_proto"
+	PluginModuleName = "iso_plugin"
+	PluginDir        = "plugin"
 
 	DefaultProjectDir     = "."
 	SpecificationFileName = "spec.yaml"
