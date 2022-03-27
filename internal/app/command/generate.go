@@ -64,7 +64,7 @@ func (c *Command) Generate(ctx context.Context, dir string) error {
 	logger.Info(ctx, "Data for plugin was generated")
 
 	logger.Info(ctx, "Building spec plugin...")
-	if err := c.buildPlugin(pluginDir, projectFullDir); err != nil {
+	if err := c.buildPlugin(ctx, true, pluginDir, projectFullDir, protoFiles); err != nil {
 		return fmt.Errorf("fail to build plugin: %w", err)
 	}
 	logger.Info(ctx, "Plugin was generated")
@@ -99,9 +99,27 @@ func (c *Command) loadSpec(path string) (models.ServiceSpecification, error) {
 	return spec, nil
 }
 
-func (c *Command) buildPlugin(pluginDir, projectFullDir string) error {
-	if err := c.golang.BuildPlugin(pluginDir, projectFullDir, config.PluginModuleName, config.PluginGoFileName); err != nil {
-		return fmt.Errorf("fail to build with golang: %w", err)
+func (c *Command) buildPlugin(ctx context.Context, dockerEnabled bool, pluginDir, projectFullDir string, protoFiles []*models.ProtoFileData) error {
+	if dockerEnabled {
+		if err := c.docker.BuildPlugin(pluginDir, projectFullDir, config.PluginModuleName, config.PluginGoFileName); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	for _, protoFile := range protoFiles {
+		logger.Infof(ctx, "Processing %s file with protoc...", protoFile.OriginalPath)
+		if err := c.protoc.Process(pluginDir, protoFile); err != nil {
+			return err
+		}
+	}
+	if err := c.golang.BuildPlugin(pluginDir, filepath.Join(projectFullDir, config.PluginFileName), config.PluginModuleName, config.PluginGoFileName); err != nil {
+		return err
+	}
+
+	logger.Info(ctx, "Cleaning...")
+	if err := os.RemoveAll(pluginDir); err != nil {
+		return fmt.Errorf("fail to clean plugin dir: %w", err)
 	}
 	return nil
 }
@@ -149,11 +167,6 @@ func (c *Command) processSpecFiles(ctx context.Context, pluginDir string, protoF
 			return models.PluginDesc{}, err
 		}
 
-		logger.Infof(ctx, "Processing %s file with protoc...", protoFile.OriginalPath)
-		if err := c.protoc.Process(pluginDir, protoFile); err != nil {
-			return models.PluginDesc{}, err
-		}
-
 		serviceDescriptions, err := c.protoParser.Parse(protoFile.RawData)
 		if err != nil {
 			return models.PluginDesc{}, err
@@ -179,51 +192,6 @@ func (c *Command) processSpecFiles(ctx context.Context, pluginDir string, protoF
 	return protoPlugin, nil
 }
 
-func (c *Command) generateRuleExamples(ctx context.Context, spec models.ServiceSpecification, path string) error {
-	svcProvider, err := loadPluginData(ctx, filepath.Join(path, config.PluginFileName))
-	if err != nil {
-		return fmt.Errorf("fail to load plugin data: %w", err)
-	}
-
-	svcConfigs, err := c.gen.GenerateServiceConfigs(spec, svcProvider)
-	if err != nil {
-		return fmt.Errorf("fail to generate svc cfgs: %w", err)
-	}
-
-	currDir := filepath.Join(path, config.RulesDir)
-	if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
-		if os.IsExist(err) {
-			logger.Warnf(ctx, "directory %s already exists, skip generating", currDir)
-			return nil
-		}
-		return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
-	}
-
-	for _, svcCfg := range svcConfigs {
-		currDir := filepath.Join(currDir, svcCfg.Name)
-		if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
-			return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
-		}
-		if err := encodeDataToYamlFile(svcCfg, currDir, config.ServiceConfigFileName); err != nil {
-			return fmt.Errorf("fail to encode data to yaml: %w", err)
-		}
-		if len(svcCfg.GRPCHandlers) > 0 {
-			currDir := filepath.Join(currDir, config.ProtoHandlerDirName)
-			if err := os.Mkdir(currDir, fs.ModePerm); err != nil {
-				return fmt.Errorf("fail to create dir: %s, err: %w", currDir, err)
-			}
-			for _, handlerCfg := range svcCfg.GRPCHandlers {
-				fileName := fmt.Sprintf("%s_%s.yaml", handlerCfg.ServiceName, handlerCfg.MethodName)
-				if err := encodeDataToYamlFile(handlerCfg, currDir, fileName); err != nil {
-					return fmt.Errorf("fail to encode data to yaml: %w", err)
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
 func (c *Command) generateReverseProxyConfig(path string) error {
 	reverseProxyConfigData, err := c.gen.GenerateReverseProxyConfigData()
 	if err != nil {
@@ -234,22 +202,6 @@ func (c *Command) generateReverseProxyConfig(path string) error {
 		return fmt.Errorf("fail to save reverse proxy config data to file: %w", err)
 	}
 
-	return nil
-}
-
-func encodeDataToYamlFile(data interface{}, currDir, fileName string) error {
-	f, err := os.Create(filepath.Join(currDir, fileName))
-	if err != nil {
-		return fmt.Errorf("fail to create %s: %w", fileName, err)
-	}
-	encoder := yaml.NewEncoder(f)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(data); err != nil {
-		return fmt.Errorf("fail to encode data: %w", err)
-	}
-	if err := encoder.Close(); err != nil {
-		return fmt.Errorf("fail to close yaml file: %w", err)
-	}
 	return nil
 }
 

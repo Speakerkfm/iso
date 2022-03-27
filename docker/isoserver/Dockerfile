@@ -11,8 +11,10 @@ FROM nginx
 
 COPY --from=build /bin/isoserver /isoserver
 
+# make dir for mounting
 RUN mkdir /iso
 
-CMD nginx -c /iso/iso_nginx.conf && \
+# apply nginx config and start server
+CMD nginx -c /iso/$REVERSE_PROXY_CONFIG_FILE_NAME && \
     nginx -s reload && \
     /isoserver -dir=iso

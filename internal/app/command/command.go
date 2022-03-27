@@ -15,20 +15,27 @@ type Golang interface {
 	BuildPlugin(wd, outDir, modName, buildFile string) error
 }
 
+type Docker interface {
+	StartServer(dir string) error
+	BuildPlugin(wd, outDir, modName, buildFile string) error
+}
+
 type Command struct {
 	gen         generator.Generator
 	fileFetcher fetcher.FileFetcher
 	protoParser proto.Parser
 	protoc      Protoc
 	golang      Golang
+	docker      Docker
 }
 
-func New(g generator.Generator, ff fetcher.FileFetcher, pc Protoc, pp proto.Parser, golang Golang) *Command {
+func New(g generator.Generator, ff fetcher.FileFetcher, pc Protoc, pp proto.Parser, golang Golang, docker Docker) *Command {
 	return &Command{
 		gen:         g,
 		fileFetcher: ff,
 		protoc:      pc,
 		protoParser: pp,
 		golang:      golang,
+		docker:      docker,
 	}
 }

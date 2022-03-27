@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	ISOServerHost = "localhost:8150"
+	ISOServerHost        = "localhost:8150"
+	ISOServerDockerImage = "iso-server"
 
 	RequestHeaderHost  = "x-original-host"
 	RequestHeaderReqID = "x-request-id"
@@ -15,10 +16,11 @@ const (
 	RequestFieldServiceName = "ServiceName"
 	RequestFieldMethodName  = "MethodName"
 
-	PluginFileName   = "spec.so"
-	PluginGoFileName = "spec.go"
-	PluginModuleName = "iso_plugin"
-	PluginDir        = "plugin"
+	PluginFileName    = "spec.so"
+	PluginGoFileName  = "spec.go"
+	PluginModuleName  = "iso_plugin"
+	PluginDir         = "plugin"
+	PluginDockerImage = "iso-plugin"
 
 	DefaultProjectDir     = "."
 	SpecificationFileName = "spec.yaml"

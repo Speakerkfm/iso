@@ -13,9 +13,13 @@ func New(c *command.Command) *cobra.Command {
 	root := handleRoot(c)
 	init := handleInit(c)
 	generate := handleGenerate(c)
+	server := handleServer(c)
+	serverStart := handleServerStart(c)
+	server.AddCommand(serverStart)
 
 	root.AddCommand(init)
 	root.AddCommand(generate)
+	root.AddCommand(server)
 
 	return root
 }
@@ -66,6 +70,34 @@ func handleGenerate(c *command.Command) *cobra.Command {
 
 			ctx := context.Background()
 			if err := c.Generate(ctx, path); err != nil {
+				handleError(ctx, err)
+			}
+		},
+	}
+}
+
+func handleServer(c *command.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:   "server",
+		Short: "server",
+		Long:  `Server commands.`,
+		Run:   func(cmd *cobra.Command, args []string) {},
+	}
+}
+
+func handleServerStart(c *command.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:   "start",
+		Short: "start server",
+		Long:  `Start server background.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			path := ""
+			if len(args) > 0 {
+				path = args[0]
+			}
+
+			ctx := context.Background()
+			if err := c.StartServer(ctx, path); err != nil {
 				handleError(ctx, err)
 			}
 		},

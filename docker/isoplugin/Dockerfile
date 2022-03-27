@@ -18,13 +18,14 @@ RUN go get google.golang.org/grpc
 # Install protoc-gen-go
 RUN go get github.com/golang/protobuf/protoc-gen-go
 
+# make dir for mounting
 RUN mkdir /iso
 
-CMD cd /iso/plugin && \
+CMD cd /iso/$PLUGIN_DIR && \
     protoc --go_out=. --go_opt=paths=source_relative **/*.proto && \
-    go mod init iso_plugin && \
+    go mod init $PLUGIN_MODULE_NAME && \
     go mod tidy && \
-    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -buildmode=plugin spec.go && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $PLUGIN_FILE_NAME $PLUGIN_GO_FILE_NAME && \
     cd .. && \
-    mv ./plugin/spec.so spec.so && \
-    rm -rf ./plugin
+    mv ./$PLUGIN_DIR/$PLUGIN_FILE_NAME $PLUGIN_FILE_NAME && \
+    rm -rf /iso/$PLUGIN_DIR

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/app/command"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/cobra"
+	"github.com/Speakerkfm/iso/internal/app/command/adapter/docker"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/golang"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/protoc"
 	"github.com/Speakerkfm/iso/internal/pkg/config"
@@ -33,8 +34,9 @@ func main() {
 	pc := protoc.New()
 	pp := proto.New()
 	glng := golang.New()
+	dckr := docker.New()
 
-	cmd := command.New(g, ff, pc, pp, glng)
+	cmd := command.New(g, ff, pc, pp, glng, dckr)
 
 	cobraCmd := cobra.New(cmd)
 
