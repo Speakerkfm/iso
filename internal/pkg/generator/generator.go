@@ -20,7 +20,6 @@ type Generator interface {
 	GeneratePluginData(pluginSpec models.PluginDesc) ([]byte, error)
 	GenerateServiceConfigs(spec models.ServiceSpecification, svcProvider public_models.ServiceProvider) ([]models.ServiceConfigDesc, error)
 	GenerateRules(svcConfigs []models.ServiceConfigDesc) []*models.Rule
-	GenerateReverseProxyConfigData() ([]byte, error)
 }
 
 // fakeData заполняет сущность рандомными данными
@@ -127,25 +126,6 @@ func (g *generator) GenerateRules(svcConfigs []models.ServiceConfigDesc) []*mode
 		}
 	}
 	return res
-}
-
-// GenerateReverseProxyConfigData генерирует конфигурационный файл для прокси сервера
-func (g *generator) GenerateReverseProxyConfigData() ([]byte, error) {
-	reverseProxyConfig := struct {
-		ISOServerHost   string
-		HeaderHost      string
-		HeaderRequestID string
-	}{
-		ISOServerHost:   config.ISOServerHost,
-		HeaderHost:      config.RequestHeaderHost,
-		HeaderRequestID: config.RequestHeaderReqID,
-	}
-	buff := bytes.NewBuffer(nil)
-	if err := reverseProxyConfigTemplate.Execute(buff, reverseProxyConfig); err != nil {
-		return nil, err
-	}
-
-	return buff.Bytes(), nil
 }
 
 func (g *generator) generateProtoHandlerConfig(protoSvc *public_models.ProtoService, protoHandler public_models.ProtoMethod) (models.HandlerConfigDesc, error) {

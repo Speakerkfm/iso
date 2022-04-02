@@ -14,6 +14,11 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/models"
 )
 
+// Parser ...
+type Parser interface {
+	ParseDirectory(ctx context.Context, directoryPath string) ([]models.ServiceConfigDesc, error)
+}
+
 type parser struct {
 }
 
@@ -36,7 +41,9 @@ func (p *parser) ParseDirectory(ctx context.Context, directoryPath string) ([]mo
 		}
 
 		currDir := path.Join(directoryPath, serviceFile.Name())
-		svc := models.ServiceConfigDesc{}
+		svc := models.ServiceConfigDesc{
+			Name: serviceFile.Name(),
+		}
 
 		serviceConfigFiles, err := ioutil.ReadDir(currDir)
 		if err != nil {

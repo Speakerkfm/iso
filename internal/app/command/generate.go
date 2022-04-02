@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"plugin"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -15,11 +14,10 @@ import (
 	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
-	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
 // Generate - генерирует все необходимые данные (список правил, конфиг прокси и плагин) для проекта в указанной директории
-func (c *Command) Generate(ctx context.Context, dir string) error {
+func (c *Command) Generate(ctx context.Context, dir string, dockerEnabled bool) error {
 	cmdExecDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("fail to get cmd exec dir: %w", err)
@@ -64,20 +62,10 @@ func (c *Command) Generate(ctx context.Context, dir string) error {
 	logger.Info(ctx, "Data for plugin was generated")
 
 	logger.Info(ctx, "Building spec plugin...")
-	if err := c.buildPlugin(ctx, true, pluginDir, projectFullDir, protoFiles); err != nil {
+	if err := c.buildPlugin(ctx, dockerEnabled, pluginDir, projectFullDir, protoFiles); err != nil {
 		return fmt.Errorf("fail to build plugin: %w", err)
 	}
 	logger.Info(ctx, "Plugin was generated")
-
-	logger.Info(ctx, "Generating rule examples....")
-	if err := c.generateRuleExamples(ctx, spec, projectFullDir); err != nil {
-		return fmt.Errorf("fail to generate rules example: %w", err)
-	}
-
-	logger.Infof(ctx, "Generating reverse proxy config...")
-	if err := c.generateReverseProxyConfig(projectFullDir); err != nil {
-		return fmt.Errorf("fail to generate reverse proxy config: %w", err)
-	}
 
 	logger.Info(ctx, "Done")
 	return nil
@@ -190,36 +178,4 @@ func (c *Command) processSpecFiles(ctx context.Context, pluginDir string, protoF
 	}
 
 	return protoPlugin, nil
-}
-
-func (c *Command) generateReverseProxyConfig(path string) error {
-	reverseProxyConfigData, err := c.gen.GenerateReverseProxyConfigData()
-	if err != nil {
-		return fmt.Errorf("fail to generate reverse proxy config data: %w", err)
-	}
-
-	if err := ioutil.WriteFile(filepath.Join(path, config.ReverseProxyConfigFileName), reverseProxyConfigData, fs.ModePerm); err != nil {
-		return fmt.Errorf("fail to save reverse proxy config data to file: %w", err)
-	}
-
-	return nil
-}
-
-func loadPluginData(ctx context.Context, pluginPath string) (public_models.ServiceProvider, error) {
-	plug, err := plugin.Open(pluginPath)
-	if err != nil {
-		return nil, fmt.Errorf("fail to open plugin: %s, err: %w", pluginPath, err)
-	}
-
-	svcs, err := plug.Lookup(public_models.ServiceProviderName)
-	if err != nil {
-		return nil, fmt.Errorf("fail too look up ServiceProvider in plugin: %s", err.Error())
-	}
-
-	s, ok := svcs.(public_models.ServiceProvider)
-	if !ok {
-		return nil, fmt.Errorf("fail to get proto description from module")
-	}
-
-	return s, nil
 }

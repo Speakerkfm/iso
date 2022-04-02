@@ -6,6 +6,7 @@ require (
 	github.com/Speakerkfm/iso/pkg/models v0.0.1
 	github.com/bxcodec/faker/v3 v3.7.0
 	github.com/emicklei/proto v1.9.1
+	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.1.0
 	github.com/stretchr/testify v1.7.0

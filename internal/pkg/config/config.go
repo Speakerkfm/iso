@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	ISOServerHost        = "localhost:8150"
+	ISOServerAdminHost   = "0.0.0.0:8150"
+	ISOServerGRPCHost    = "localhost:8152"
 	ISOServerDockerImage = "iso-server"
 
 	RequestHeaderHost  = "x-original-host"
@@ -31,6 +32,7 @@ const (
 	ReverseProxyConfigFileName = "iso_nginx.conf"
 
 	HandlerConfigDefaultTimeout = 5 * time.Millisecond
+	RulesSyncInterval           = 5 * time.Second
 )
 
 // Parse парсит конфигурационный файл и заполняет структуры конфига

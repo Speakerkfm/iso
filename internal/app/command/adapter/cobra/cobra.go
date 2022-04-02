@@ -6,20 +6,33 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/Speakerkfm/iso/internal/app/command"
+	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
+)
+
+const (
+	defaultPath = "."
 )
 
 func New(c *command.Command) *cobra.Command {
 	root := handleRoot(c)
 	init := handleInit(c)
 	generate := handleGenerate(c)
+
 	server := handleServer(c)
 	serverStart := handleServerStart(c)
 	server.AddCommand(serverStart)
 
+	rules := handleRules(c)
+	rulesSync := handleRulesSync(c)
+	rulesApply := handleRulesApply(c)
+	rules.AddCommand(rulesSync)
+	rules.AddCommand(rulesApply)
+
 	root.AddCommand(init)
 	root.AddCommand(generate)
 	root.AddCommand(server)
+	root.AddCommand(rules)
 
 	return root
 }
@@ -39,12 +52,12 @@ func handleRoot(c *command.Command) *cobra.Command {
 }
 
 func handleInit(c *command.Command) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Init project",
 		Long:  `Init project with specification file.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			path := ""
+			path := config.DefaultProjectDir
 			if len(args) > 0 {
 				path = args[0]
 			}
@@ -55,25 +68,32 @@ func handleInit(c *command.Command) *cobra.Command {
 			}
 		},
 	}
+
+	return cmd
 }
 
 func handleGenerate(c *command.Command) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate project",
 		Long:  `Generate project from specification file.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			path := ""
+			path := config.DefaultProjectDir
 			if len(args) > 0 {
 				path = args[0]
 			}
+			dockerEnabled, _ := cmd.Flags().GetBool("docker")
 
 			ctx := context.Background()
-			if err := c.Generate(ctx, path); err != nil {
+			if err := c.Generate(ctx, path, dockerEnabled); err != nil {
 				handleError(ctx, err)
 			}
 		},
 	}
+
+	cmd.Flags().Bool("docker", false, "")
+
+	return cmd
 }
 
 func handleServer(c *command.Command) *cobra.Command {
@@ -86,22 +106,78 @@ func handleServer(c *command.Command) *cobra.Command {
 }
 
 func handleServerStart(c *command.Command) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "start server",
 		Long:  `Start server background.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			path := ""
+			path := config.DefaultProjectDir
+			if len(args) > 0 {
+				path = args[0]
+			}
+			dockerEnabled, _ := cmd.Flags().GetBool("docker")
+
+			ctx := context.Background()
+			if err := c.StartServer(ctx, path, dockerEnabled); err != nil {
+				handleError(ctx, err)
+			}
+		},
+	}
+
+	cmd.Flags().Bool("docker", false, "")
+
+	return cmd
+}
+
+func handleRules(c *command.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:   "rules",
+		Short: "rules",
+		Long:  `Rules commands.`,
+		Run:   func(cmd *cobra.Command, args []string) {},
+	}
+}
+
+func handleRulesSync(c *command.Command) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sync",
+		Short: "sync rules",
+		Long:  `Sync rules with iso server.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			path := config.DefaultProjectDir
 			if len(args) > 0 {
 				path = args[0]
 			}
 
 			ctx := context.Background()
-			if err := c.StartServer(ctx, path); err != nil {
+			if err := c.RulesSync(ctx, path); err != nil {
 				handleError(ctx, err)
 			}
 		},
 	}
+
+	return cmd
+}
+
+func handleRulesApply(c *command.Command) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "apply",
+		Short: "apply rules",
+		Long:  `Apply rules to iso server.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			path := config.DefaultProjectDir
+			if len(args) > 0 {
+				path = args[0]
+			}
+
+			ctx := context.Background()
+			if err := c.RulesApply(ctx, path); err != nil {
+				handleError(ctx, err)
+			}
+		},
+	}
+
+	return cmd
 }
 
 func handleError(ctx context.Context, err error) {

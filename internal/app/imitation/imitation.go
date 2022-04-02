@@ -22,6 +22,6 @@ func New(processor request_processor.Processor, protoServices []*public_models.P
 	}
 }
 
-func (i *Imitation) Serve(lis net.Listener) error {
+func (i *Imitation) RegisterGRPC(lis net.Listener) error {
 	return i.grpcServer.Serve(lis)
 }

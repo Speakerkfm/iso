@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/Speakerkfm/iso/internal/pkg/config"
@@ -18,8 +19,8 @@ func (c *Command) Init(ctx context.Context, dir string) error {
 		return fmt.Errorf("fail to generate config data: %w", err)
 	}
 
-	if dir == "" {
-		dir = config.DefaultProjectDir
+	if err := os.Mkdir(dir, fs.ModePerm); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("fail to create directory: %w", err)
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(dir, config.SpecificationFileName), specData, fs.ModePerm); err != nil {

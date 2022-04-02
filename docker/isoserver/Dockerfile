@@ -10,11 +10,9 @@ RUN cd /app && \
 FROM nginx
 
 COPY --from=build /bin/isoserver /isoserver
+COPY --from=build /app/iso_nginx.conf /iso_nginx.conf
 
 # make dir for mounting
 RUN mkdir /iso
 
-# apply nginx config and start server
-CMD nginx -c /iso/$REVERSE_PROXY_CONFIG_FILE_NAME && \
-    nginx -s reload && \
-    /isoserver -dir=iso
+CMD nginx -c /iso_nginx.conf && nginx -s reload && /isoserver -dir=iso

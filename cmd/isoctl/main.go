@@ -11,12 +11,14 @@ import (
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/cobra"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/docker"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/golang"
+	"github.com/Speakerkfm/iso/internal/app/command/adapter/isoserver"
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/protoc"
 	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/fetcher"
 	"github.com/Speakerkfm/iso/internal/pkg/generator"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/parser/proto"
+	rule_parser "github.com/Speakerkfm/iso/internal/pkg/rule/parser"
 )
 
 const (
@@ -33,10 +35,12 @@ func main() {
 	ff := fetcher.New()
 	pc := protoc.New()
 	pp := proto.New()
+	ruleParser := rule_parser.New()
 	glng := golang.New()
 	dckr := docker.New()
+	isoSrv := isoserver.New()
 
-	cmd := command.New(g, ff, pc, pp, glng, dckr)
+	cmd := command.New(g, ff, pc, pp, ruleParser, glng, dckr, isoSrv)
 
 	cobraCmd := cobra.New(cmd)
 
