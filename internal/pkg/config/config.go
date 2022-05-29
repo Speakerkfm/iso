@@ -8,6 +8,7 @@ const (
 	ISOServerAdminHost   = "0.0.0.0:8150"
 	ISOServerGRPCHost    = "localhost:8152"
 	ISOServerDockerImage = "iso-server"
+	ISOServerDockerID    = "my-iso-server"
 
 	RequestHeaderHost  = "x-original-host"
 	RequestHeaderReqID = "x-request-id"
@@ -33,6 +34,12 @@ const (
 
 	HandlerConfigDefaultTimeout = 5 * time.Millisecond
 	RulesSyncInterval           = 5 * time.Second
+
+	BatcherEnabled          = true
+	BatcherBatchCount       = 1
+	BatcherFlushInterval    = 1 * time.Second
+	BatcherFlushItemsAmount = 10
+	BatcherEventBuffSize    = 1000
 )
 
 // Parse парсит конфигурационный файл и заполняет структуры конфига

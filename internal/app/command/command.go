@@ -20,11 +20,13 @@ type Golang interface {
 
 type Docker interface {
 	StartServer(dir string) error
+	StopServer() error
 	BuildPlugin(wd, outDir, modName, buildFile string) error
 }
 
 type ISOServer interface {
 	GetServiceConfigs(ctx context.Context) ([]models.ServiceConfigDesc, error)
+	GetReport(ctx context.Context) (*models.Report, error)
 	SaveServiceConfigs(ctx context.Context, serviceConfigs []models.ServiceConfigDesc) error
 }
 

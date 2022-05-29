@@ -41,6 +41,10 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("fail to process request: %s", err.Error())
 	}
 
+	if resp.Error != "" {
+		return nil, fmt.Errorf(resp.Error)
+	}
+
 	msg := method.RespStruct.ProtoReflect().New().Interface()
 	if err := json.Unmarshal(resp.Message, &msg); err != nil {
 		return nil, fmt.Errorf("fail to unmarshal resp json into proto struct")

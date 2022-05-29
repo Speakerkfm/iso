@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
+	"github.com/Speakerkfm/iso/internal/pkg/metrics"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
@@ -31,7 +32,10 @@ type Method struct {
 }
 
 func New(processor request_processor.Processor, services []*public_models.ProtoService) *grpc.Server {
-	srv := grpc.NewServer(grpc.ForceServerCodec(codec{}))
+	srv := grpc.NewServer(
+		grpc.ForceServerCodec(codec{}),
+		grpc.UnaryInterceptor(metrics.UnaryServerInterceptor),
+	)
 	h := NewHandler(processor)
 	for _, svc := range services {
 		grpcService := h.registerService(svc)

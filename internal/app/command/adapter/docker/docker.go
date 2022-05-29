@@ -40,6 +40,7 @@ func (d *Docker) BuildPlugin(dir, outDir, moduleName, buildFile string) error {
 func (d *Docker) StartServer(dir string) error {
 	cmdStartServer := exec.Command("docker", "run",
 		"-d",
+		"--name", config.ISOServerDockerID,
 		"-v", fmt.Sprintf("%s:/iso", dir),
 		"-p", "82:82",
 		"-p", "8150:8150",
@@ -49,6 +50,18 @@ func (d *Docker) StartServer(dir string) error {
 	logger.Infof(context.Background(), "Exec: %s", cmdStartServer.String())
 	if err := cmdStartServer.Run(); err != nil {
 		return fmt.Errorf("fail to start server: %w", err)
+	}
+
+	return nil
+}
+
+// StartServer ...
+func (d *Docker) StopServer() error {
+	cmdStartServer := exec.Command("docker", "rm", "-f", config.ISOServerDockerID)
+
+	logger.Infof(context.Background(), "Exec: %s", cmdStartServer.String())
+	if err := cmdStartServer.Run(); err != nil {
+		return fmt.Errorf("fail to stop server: %w", err)
 	}
 
 	return nil

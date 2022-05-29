@@ -36,6 +36,22 @@ func (c *Client) GetServiceConfigs(ctx context.Context) ([]models.ServiceConfigD
 	return res, nil
 }
 
+// GetReport ...
+func (c *Client) GetReport(ctx context.Context) (*models.Report, error) {
+	resp, err := http.Get(fmt.Sprintf("http://%s/report", config.ISOServerAdminHost))
+	if err != nil {
+		return nil, fmt.Errorf("fail to get report: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var res *models.Report
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, fmt.Errorf("fail to decode report response: %w", err)
+	}
+
+	return res, nil
+}
+
 // SaveServiceConfigs ...
 func (c *Client) SaveServiceConfigs(ctx context.Context, serviceConfigs []models.ServiceConfigDesc) error {
 	reqBody := bytes.NewBuffer(nil)

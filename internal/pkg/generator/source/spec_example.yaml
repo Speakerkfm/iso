@@ -1,8 +1,9 @@
 # Данный файл содержит описание внешних зависимостей изолируемого сервиса
 external_dependencies:
-  - name: user_service        # Имя внешней зависимости
-    host: user-api.localhost  # Хост 
-    proto:
+  - name: user_service        # Имя внешнего сервиса
+    host: user-api.localhost  # Хост, по которому к нему можно обратиться
+    proto: # Тип контракта
+      # Путь к файлу описания контракта API
       - raw.githubusercontent.com/Speakerkfm/iso_example/master/user-api/api/user_api.proto
 
   - name: address_service

@@ -21,7 +21,9 @@ func New(c *command.Command) *cobra.Command {
 
 	server := handleServer(c)
 	serverStart := handleServerStart(c)
+	serverStop := handleServerStop(c)
 	server.AddCommand(serverStart)
+	server.AddCommand(serverStop)
 
 	rules := handleRules(c)
 	rulesSync := handleRulesSync(c)
@@ -29,10 +31,15 @@ func New(c *command.Command) *cobra.Command {
 	rules.AddCommand(rulesSync)
 	rules.AddCommand(rulesApply)
 
+	report := handleReport(c)
+	reportLoad := handleReportLoad(c)
+	report.AddCommand(reportLoad)
+
 	root.AddCommand(init)
 	root.AddCommand(generate)
 	root.AddCommand(server)
 	root.AddCommand(rules)
+	root.AddCommand(report)
 
 	return root
 }
@@ -129,6 +136,26 @@ func handleServerStart(c *command.Command) *cobra.Command {
 	return cmd
 }
 
+func handleServerStop(c *command.Command) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stop",
+		Short: "stop server",
+		Long:  `Stop server background.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			dockerEnabled, _ := cmd.Flags().GetBool("docker")
+
+			ctx := context.Background()
+			if err := c.StopServer(ctx, dockerEnabled); err != nil {
+				handleError(ctx, err)
+			}
+		},
+	}
+
+	cmd.Flags().Bool("docker", false, "")
+
+	return cmd
+}
+
 func handleRules(c *command.Command) *cobra.Command {
 	return &cobra.Command{
 		Use:   "rules",
@@ -176,6 +203,33 @@ func handleRulesApply(c *command.Command) *cobra.Command {
 			}
 		},
 	}
+
+	return cmd
+}
+
+func handleReport(c *command.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:   "report",
+		Short: "report",
+		Long:  `Report commands.`,
+		Run:   func(cmd *cobra.Command, args []string) {},
+	}
+}
+
+func handleReportLoad(c *command.Command) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "load",
+		Short: "lead report",
+		Long:  `Load report from iso server.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			ctx := context.Background()
+			if err := c.ReportLoad(ctx); err != nil {
+				handleError(ctx, err)
+			}
+		},
+	}
+
+	cmd.Flags().Bool("docker", false, "")
 
 	return cmd
 }

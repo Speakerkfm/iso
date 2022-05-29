@@ -9,8 +9,9 @@ rules:
       data: |-
         {
         	"address": {
-        		"id": 23,
-        		"city": "ShEbTPFEJHrDacGfcMVNwDcmk",
-        		"zip_code": "BbZCWAVjPZPDTDlRVCUIJNVHX"
+        		"id": 71,
+        		"city": "RTdjurdNHPqOODbnkKaCRVIsQ",
+        		"zip_code": "hOVuRlSEIQEAXfJaROnyaeuGo"
         	}
         }
+      error: ""

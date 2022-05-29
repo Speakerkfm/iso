@@ -14,4 +14,5 @@ type Request interface {
 type Response struct {
 	ID      string
 	Message json.RawMessage
+	Error   string
 }

@@ -20,9 +20,11 @@ type Rule struct {
 
 // HandlerConfig конфигурация обработчика запроса
 type HandlerConfig struct {
+	ServiceName   string
+	MethodName    string
 	ResponseDelay time.Duration
 	MessageData   json.RawMessage
-	Error         error
+	Error         string
 }
 
 // Condition условие правила

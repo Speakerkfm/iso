@@ -43,6 +43,7 @@ type RuleDesc struct {
 type HandlerResponseDesc struct {
 	Delay time.Duration `yaml:"delay"`
 	Data  string        `yaml:"data"`
+	Error string        `yaml:"error"`
 }
 
 type HandlerConditionDesc struct {

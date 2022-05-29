@@ -11,6 +11,7 @@ import (
 	"plugin"
 	"syscall"
 
+	"go.uber.org/atomic"
 	_ "google.golang.org/protobuf/proto"
 	_ "google.golang.org/protobuf/reflect/protoreflect"
 	_ "google.golang.org/protobuf/runtime/protoimpl"
@@ -19,9 +20,14 @@ import (
 	"github.com/Speakerkfm/iso/internal/app/admin"
 	"github.com/Speakerkfm/iso/internal/app/imitation"
 	"github.com/Speakerkfm/iso/internal/pkg/config"
+	"github.com/Speakerkfm/iso/internal/pkg/events"
+	events_batcher "github.com/Speakerkfm/iso/internal/pkg/events/batcher"
+	event_store "github.com/Speakerkfm/iso/internal/pkg/events/repository/store"
 	"github.com/Speakerkfm/iso/internal/pkg/generator"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
+	"github.com/Speakerkfm/iso/internal/pkg/metrics"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
+	"github.com/Speakerkfm/iso/internal/pkg/reporter"
 	"github.com/Speakerkfm/iso/internal/pkg/request_processor"
 	"github.com/Speakerkfm/iso/internal/pkg/router"
 	"github.com/Speakerkfm/iso/internal/pkg/rule/manager"
@@ -100,13 +106,27 @@ func main() {
 
 	ruleManager := manager.New()
 	ruleManager.UpdateRuleTree(defaultRules)
-	processor := request_processor.New(ruleManager)
+
+	eventRepo := event_store.New()
+
+	batcher := events_batcher.New(appCtx,
+		atomic.NewBool(config.BatcherEnabled),
+		eventRepo,
+		config.BatcherBatchCount,
+		atomic.NewDuration(config.BatcherFlushInterval),
+		atomic.NewInt64(config.BatcherFlushItemsAmount),
+		config.BatcherEventBuffSize,
+	)
+	eventSvc := events.New(batcher, eventRepo)
+	processor := request_processor.New(ruleManager, eventSvc)
 
 	ruleSyncer := syncer.New(appCtx, ruleSvc, ruleManager, config.RulesSyncInterval)
 	ruleSyncer.Start()
 	defer ruleSyncer.Stop()
 
-	adminServer := admin.New(ruleSvc)
+	reportSvc := reporter.New(eventSvc)
+
+	adminServer := admin.New(ruleSvc, reportSvc)
 
 	impl := imitation.New(processor, s.GetList())
 
@@ -124,6 +144,9 @@ func main() {
 	}()
 	go func() {
 		mx := router.NewRouter()
+		if err := metrics.RegisterMetricsHandler(appCtx, mx); err != nil {
+			logger.Fatalf(appCtx, "fail to register metrics handler: %s", err.Error())
+		}
 		if err := adminServer.RegisterGateway(appCtx, mx); err != nil {
 			logger.Fatalf(appCtx, "fail to register admin gateway: %s", err.Error())
 		}

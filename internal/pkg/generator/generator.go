@@ -111,8 +111,11 @@ func (g *generator) GenerateRules(svcConfigs []models.ServiceConfigDesc) []*mode
 						},
 					},
 					HandlerConfig: &models.HandlerConfig{
+						ServiceName:   handlerCfg.ServiceName,
+						MethodName:    handlerCfg.MethodName,
 						ResponseDelay: handlerRule.Response.Delay,
 						MessageData:   json.RawMessage(handlerRule.Response.Data),
+						Error:         handlerRule.Response.Error,
 					},
 				}
 				for _, cond := range handlerRule.Conditions {
