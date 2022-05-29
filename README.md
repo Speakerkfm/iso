@@ -14,7 +14,10 @@ ISO - это инструмент, предназначенный для изо�
 - `go install github.com/Speakerkfm/iso/cmd/isoctl@latest`
 
 ## Использование
-Для тестового примера взят сервис [order-api](https://github.com/Speakerkfm/iso_example/tree/master/order-api).
+Для тестового примера взят сервис [order-api](https://github.com/Speakerkfm/iso_example/tree/master/order-api), 
+который вызывает по gRPC [user-api](https://github.com/Speakerkfm/iso_example/tree/master/user-api), 
+[address-api](https://github.com/Speakerkfm/iso_example/tree/master/address-api) 
+и [shipment-api](https://github.com/Speakerkfm/iso_example/tree/master/shipment-api).
 1. Создать проект `isoctl init example`.
 2. Описать внешние зависимости в файле `spec.yaml`.
     ```
