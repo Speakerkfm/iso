@@ -22,7 +22,7 @@ type RuleManager interface {
 
 // EventService сохраняет события об обработанных запросах для формирования отчетов
 type EventService interface {
-	PushEvent(ctx context.Context, serviceName, methodName string, isSuccess bool) error
+	PushEvent(ctx context.Context, serviceName, methodName, ruleName string) error
 }
 
 type processor struct {
@@ -50,21 +50,25 @@ func (p *processor) Process(ctx context.Context, req models.Request) (*models.Re
 
 	respCfg := rule.HandlerConfig
 
-	if err := waitDelay(ctx, respCfg.ResponseDelay); err != nil {
+	if err := waitDelay(ctx, req.GetHandledAt(), respCfg.ResponseDelay); err != nil {
 		return nil, fmt.Errorf("fail to wait delay: %w", err)
 	}
 
-	if err := p.eventService.PushEvent(ctx, respCfg.ServiceName, respCfg.MethodName, respCfg.Error == ""); err != nil {
+	if err := p.eventService.PushEvent(ctx, respCfg.ServiceName, respCfg.MethodName, rule.Name); err != nil {
 		logger.Errorf(ctx, "fail to push event: %s", err.Error())
 	}
 
 	return &models.Response{
+		ID:      rule.ID,
 		Message: respCfg.MessageData,
 		Error:   respCfg.Error,
 	}, nil
 }
 
-func waitDelay(ctx context.Context, delay time.Duration) error {
+func waitDelay(ctx context.Context, handledAt time.Time, delay time.Duration) error {
+	if time.Since(handledAt) >= delay {
+		return nil
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -77,8 +81,8 @@ func writeRequestProcessTimeMetric(started time.Time, rule *models.Rule) {
 	if rule == nil {
 		return
 	}
-	metrics.RequestProcessingTimeSummary.WithLabelValues(
+	metrics.RequestProcessingTimeHistogramVec.WithLabelValues(
 		rule.HandlerConfig.ServiceName,
 		rule.HandlerConfig.MethodName).
-		Observe(float64(time.Since(started).Milliseconds()))
+		Observe(time.Since(started).Seconds())
 }

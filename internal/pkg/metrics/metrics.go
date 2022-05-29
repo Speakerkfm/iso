@@ -13,10 +13,10 @@ import (
 var (
 	UnaryServerInterceptor = grpc_prometheus.UnaryServerInterceptor
 
-	RequestProcessingTimeSummary = prometheus.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Name:       "request_processing_time_summary_ms",
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	RequestProcessingTimeHistogramVec = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "request_processing_time_seconds",
+			Buckets: prometheus.DefBuckets,
 		},
 		[]string{"service", "method"},
 	)
@@ -24,8 +24,9 @@ var (
 
 func init() {
 	prometheus.MustRegister(
-		RequestProcessingTimeSummary,
+		RequestProcessingTimeHistogramVec,
 	)
+	grpc_prometheus.EnableHandlingTimeHistogram()
 }
 
 func RegisterMetricsHandler(ctx context.Context, mux router.ServeMux) error {

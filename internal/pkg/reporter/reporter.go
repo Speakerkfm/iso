@@ -44,17 +44,17 @@ func (r *reporter) GetReport(ctx context.Context) (*models.Report, error) {
 
 		if _, ok := report.Service[evt.ServiceName].Method[evt.MethodName]; !ok {
 			report.Service[evt.ServiceName].Method[evt.MethodName] = &models.MethodReport{
-				Stat: &models.MethodStat{},
+				RuleStat: make(map[string]int64),
 			}
 		}
 
 		methodReport := report.Service[evt.ServiceName].Method[evt.MethodName]
 
-		if evt.IsSuccess {
-			methodReport.Stat.SuccessCount++
-		} else {
-			methodReport.Stat.ErrorCount++
+		if _, ok := methodReport.RuleStat[evt.RuleName]; !ok {
+			methodReport.RuleStat[evt.RuleName] = 0
 		}
+
+		methodReport.RuleStat[evt.RuleName]++
 	}
 
 	return report, nil

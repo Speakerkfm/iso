@@ -2,6 +2,34 @@ service_name: UserService
 method_name: GetUser
 rules:
   - conditions:
+      - key: body.id
+        value: "10"
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"user": {
+        		"id": 62,
+        		"name": "Aleksandr",
+        		"surname": "Usanin"
+        	}
+        }
+      error: ""
+  - conditions:
+      - key: body.id
+        value: "15"
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"user": {
+        		"id": 62,
+        		"name": "Aleksandr",
+        		"surname": "Usanin"
+        	}
+        }
+      error: ""
+  - conditions:
       - key: header.x-request-id
         value: '*'
     response:

@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/generator/adapter/faker"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
 	"github.com/Speakerkfm/iso/internal/pkg/models"
+	"github.com/Speakerkfm/iso/internal/pkg/util"
 	public_models "github.com/Speakerkfm/iso/pkg/models"
 )
 
@@ -96,6 +98,8 @@ func (g *generator) GenerateRules(svcConfigs []models.ServiceConfigDesc) []*mode
 		for _, handlerCfg := range svcConfig.GRPCHandlers {
 			for _, handlerRule := range handlerCfg.Rules {
 				r := &models.Rule{
+					ID:   util.NewUUID(),
+					Name: generateRuleName(handlerRule.Conditions),
 					Conditions: []models.Condition{
 						{
 							Key:   config.RequestFieldHost,
@@ -158,4 +162,16 @@ func (g *generator) generateProtoHandlerConfig(protoSvc *public_models.ProtoServ
 			},
 		},
 	}, nil
+}
+
+func generateRuleName(conditions []models.HandlerConditionDesc) string {
+	buff := bytes.NewBuffer(nil)
+	for _, condition := range conditions {
+		buff.WriteString(condition.Key)
+		buff.WriteRune(':')
+		buff.WriteString(condition.Value)
+		buff.WriteRune(',')
+	}
+	ruleName := buff.String()
+	return strings.TrimSuffix(ruleName, ",")
 }

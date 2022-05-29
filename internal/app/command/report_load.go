@@ -9,7 +9,7 @@ import (
 	"github.com/Speakerkfm/iso/internal/app/command/adapter/tablewriter"
 )
 
-var headers = []string{"service name", "method name", "success count", "error count"}
+var headers = []string{"service name", "method name", "rule name", "request count"}
 
 func (c *Command) ReportLoad(ctx context.Context) error {
 	report, err := c.isoSrv.GetReport(ctx)
@@ -27,12 +27,14 @@ func (c *Command) ReportLoad(ctx context.Context) error {
 
 	for serviceName, serviceReport := range report.Service {
 		for methodName, methodReport := range serviceReport.Method {
-			table.Append([]string{
-				serviceName,
-				methodName,
-				strconv.Itoa(methodReport.Stat.SuccessCount),
-				strconv.Itoa(methodReport.Stat.ErrorCount),
-			})
+			for ruleName, reqCnt := range methodReport.RuleStat {
+				table.Append([]string{
+					serviceName,
+					methodName,
+					ruleName,
+					strconv.Itoa(int(reqCnt)),
+				})
+			}
 		}
 	}
 

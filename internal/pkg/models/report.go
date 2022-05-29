@@ -1,12 +1,7 @@
 package models
 
-type MethodStat struct {
-	SuccessCount int `json:"success_count"`
-	ErrorCount   int `json:"error_count"`
-}
-
 type MethodReport struct {
-	Stat *MethodStat `json:"stat"`
+	RuleStat map[string]int64 `json:"rule_stat"`
 }
 
 type ServiceReport struct {

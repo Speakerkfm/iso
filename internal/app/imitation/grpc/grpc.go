@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
@@ -77,6 +78,7 @@ func createUnaryHandler(serviceName, methodName string, msg proto.Message) func(
 			ServiceName: serviceName,
 			MethodName:  methodName,
 			Msg:         msg.ProtoReflect().New().Interface(),
+			HandledAt:   time.Now(),
 		}
 		if err := dec(in); err != nil {
 			logger.Errorf(ctx, "fail to decode incoming req: %s", err.Error())

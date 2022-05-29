@@ -7,7 +7,7 @@ import (
 const (
 	ISOServerAdminHost   = "0.0.0.0:8150"
 	ISOServerGRPCHost    = "localhost:8152"
-	ISOServerDockerImage = "iso-server"
+	ISOServerDockerImage = "speakerkfm/iso-server:latest"
 	ISOServerDockerID    = "my-iso-server"
 
 	RequestHeaderHost  = "x-original-host"
@@ -22,7 +22,7 @@ const (
 	PluginGoFileName  = "spec.go"
 	PluginModuleName  = "iso_plugin"
 	PluginDir         = "plugin"
-	PluginDockerImage = "iso-plugin"
+	PluginDockerImage = "speakerkfm/iso-plugin:latest"
 
 	DefaultProjectDir     = "."
 	SpecificationFileName = "spec.yaml"
@@ -36,9 +36,9 @@ const (
 	RulesSyncInterval           = 5 * time.Second
 
 	BatcherEnabled          = true
-	BatcherBatchCount       = 1
+	BatcherBatchCount       = 3
 	BatcherFlushInterval    = 1 * time.Second
-	BatcherFlushItemsAmount = 10
+	BatcherFlushItemsAmount = 100
 	BatcherEventBuffSize    = 1000
 )
 

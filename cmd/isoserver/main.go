@@ -5,6 +5,7 @@ import (
 	"flag"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
 	"path"
@@ -144,6 +145,7 @@ func main() {
 	}()
 	go func() {
 		mx := router.NewRouter()
+		mx.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		if err := metrics.RegisterMetricsHandler(appCtx, mx); err != nil {
 			logger.Fatalf(appCtx, "fail to register metrics handler: %s", err.Error())
 		}

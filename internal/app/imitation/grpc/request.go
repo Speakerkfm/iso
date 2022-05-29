@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -24,6 +25,7 @@ type Request struct {
 	Msg         proto.Message
 	Headers     map[string][]string
 	Values      map[string]string
+	HandledAt   time.Time
 }
 
 func (r *Request) GetValue(ctx context.Context, key string) (string, bool) {
@@ -34,6 +36,10 @@ func (r *Request) GetValue(ctx context.Context, key string) (string, bool) {
 		return val, true
 	}
 	return "", false
+}
+
+func (r *Request) GetHandledAt() time.Time {
+	return r.HandledAt
 }
 
 func (r *Request) getHeader(ctx context.Context, key string) (string, bool) {

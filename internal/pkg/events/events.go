@@ -26,11 +26,11 @@ func New(batcher batcher, eventRepo eventRepository) *Service {
 	}
 }
 
-func (svc *Service) PushEvent(ctx context.Context, serviceName, methodName string, isSuccess bool) error {
+func (svc *Service) PushEvent(ctx context.Context, serviceName, methodName, ruleName string) error {
 	return svc.batcher.Append(ctx, &models.Event{
 		ServiceName: serviceName,
 		MethodName:  methodName,
-		IsSuccess:   isSuccess,
+		RuleName:    ruleName,
 	})
 }
 

@@ -11,13 +11,15 @@ import (
 type handler struct {
 	processor request_processor.Processor
 
-	svc map[string]Service
+	svc   map[string]Service
+	cache *responseStore
 }
 
 func NewHandler(processor request_processor.Processor) *handler {
 	return &handler{
 		processor: processor,
 		svc:       make(map[string]Service),
+		cache:     newResponseStore(),
 	}
 }
 
@@ -50,11 +52,15 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("fail to unmarshal resp json into proto struct")
 	}
 
+	if protoResp, ok := h.cache.Get(ctx, resp.ID); ok {
+		return protoResp, nil
+	}
+
 	protoResp := &Response{
 		msg: msg,
 	}
 
-	// save in store by message id
+	h.cache.Set(ctx, resp.ID, protoResp)
 
 	return protoResp, nil
 }

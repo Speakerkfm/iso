@@ -14,6 +14,8 @@ type RuleNode struct {
 
 // Rule правило для ответа
 type Rule struct {
+	ID            string
+	Name          string
 	Conditions    []Condition
 	HandlerConfig *HandlerConfig
 }
