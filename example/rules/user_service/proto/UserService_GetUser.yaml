@@ -20,15 +20,7 @@ rules:
         value: "15"
     response:
       delay: 5ms
-      data: |-
-        {
-        	"user": {
-        		"id": 62,
-        		"name": "Aleksandr",
-        		"surname": "Usanin"
-        	}
-        }
-      error: ""
+      error: "Not found"
   - conditions:
       - key: header.x-request-id
         value: '*'
