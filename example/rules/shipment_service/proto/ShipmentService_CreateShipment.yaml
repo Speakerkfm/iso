@@ -2,6 +2,24 @@ service_name: ShipmentService
 method_name: CreateShipment
 rules:
   - conditions:
+      - key: body.user_id
+        value: '11'
+    response:
+      delay: 6s
+      data: |-
+        {
+        	"id": 58
+        }
+  - conditions:
+      - key: body.user_id
+        value: '10'
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"id": 57
+        }
+  - conditions:
       - key: header.x-request-id
         value: '*'
     response:

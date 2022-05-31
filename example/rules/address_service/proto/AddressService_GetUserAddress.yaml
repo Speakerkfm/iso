@@ -2,6 +2,38 @@ service_name: AddressService
 method_name: GetUserAddress
 rules:
   - conditions:
+      - key: body.user_id
+        value: '12'
+    response:
+      delay: 5ms
+      error: "Address not found"
+  - conditions:
+      - key: body.user_id
+        value: '11'
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"address": {
+        		"id": 73,
+        		"city": "Perm",
+        		"zip_code": "111111"
+        	}
+        }
+  - conditions:
+      - key: body.user_id
+        value: '10'
+    response:
+      delay: 5ms
+      data: |-
+        {
+        	"address": {
+        		"id": 72,
+        		"city": "Perm",
+        		"zip_code": "614087"
+        	}
+        }
+  - conditions:
       - key: header.x-request-id
         value: '*'
     response:
@@ -14,4 +46,3 @@ rules:
         		"zip_code": "hOVuRlSEIQEAXfJaROnyaeuGo"
         	}
         }
-      error: ""
