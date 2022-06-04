@@ -47,13 +47,13 @@ func (h *handler) Handle(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf(resp.Error)
 	}
 
+	if protoResp, ok := h.cache.Get(ctx, resp.ID); ok {
+		return protoResp, nil
+	}
+
 	msg := method.RespStruct.ProtoReflect().New().Interface()
 	if err := json.Unmarshal(resp.Message, &msg); err != nil {
 		return nil, fmt.Errorf("fail to unmarshal resp json into proto struct")
-	}
-
-	if protoResp, ok := h.cache.Get(ctx, resp.ID); ok {
-		return protoResp, nil
 	}
 
 	protoResp := &Response{

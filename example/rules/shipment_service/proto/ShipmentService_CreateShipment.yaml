@@ -3,27 +3,49 @@ method_name: CreateShipment
 rules:
   - conditions:
       - key: body.user_id
-        value: '11'
+        value: '18'
     response:
-      delay: 6s
+      delay: 0ms
       data: |-
         {
-        	"id": 58
+        	"id": 56
         }
+      error: ""
   - conditions:
       - key: body.user_id
-        value: '10'
+        value: '17'
     response:
-      delay: 5ms
+      delay: 0ms
       data: |-
         {
-        	"id": 57
+        	"id": 56
         }
+      error: ""
+  - conditions:
+      - key: body.user_id
+        value: '16'
+    response:
+      delay: 0ms
+      data: |-
+        {
+        	"id": 56
+        }
+      error: ""
+  - conditions:
+      - key: body.user_id
+        value: '15'
+    response:
+      delay: 0ms
+      data: |-
+        {
+        	"id": 56
+        }
+      error: ""
   - conditions:
       - key: header.x-request-id
         value: '*'
     response:
-      delay: 5ms
+      delay: 0ms
       data: |-
         {
         	"id": 56

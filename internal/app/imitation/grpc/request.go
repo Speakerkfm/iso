@@ -12,10 +12,12 @@ import (
 
 	"github.com/Speakerkfm/iso/internal/pkg/config"
 	"github.com/Speakerkfm/iso/internal/pkg/logger"
+	"github.com/Speakerkfm/iso/internal/pkg/util"
 )
 
 const (
 	valueHeaderPrefix = "header."
+	authorityHeader   = ":authority"
 )
 
 type Request struct {
@@ -70,6 +72,16 @@ func fillRequest(req *Request) error {
 	}
 	req.Values = values
 	req.Headers = md
+
+	authority := ""
+	authorityValue := md.Get(authorityHeader)
+	if len(authorityValue) > 0 {
+		authority = authorityValue[0]
+	}
+	host := strings.Split(authority, ":")[0]
+
+	req.Headers[config.RequestHeaderHost] = []string{host}
+	req.Headers[config.RequestHeaderReqID] = []string{util.NewUUID()}
 
 	return nil
 }

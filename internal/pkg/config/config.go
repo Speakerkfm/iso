@@ -6,7 +6,7 @@ import (
 
 const (
 	ISOServerAdminHost   = "0.0.0.0:8150"
-	ISOServerGRPCHost    = "localhost:8152"
+	ISOServerGRPCHost    = "0.0.0.0:82"
 	ISOServerDockerImage = "speakerkfm/iso-server:latest"
 	ISOServerDockerID    = "my-iso-server"
 
@@ -36,10 +36,12 @@ const (
 	RulesSyncInterval           = 5 * time.Second
 
 	BatcherEnabled          = true
-	BatcherBatchCount       = 3
+	BatcherBatchCount       = 6
 	BatcherFlushInterval    = 1 * time.Second
 	BatcherFlushItemsAmount = 100
 	BatcherEventBuffSize    = 1000
+
+	LoggerLevel = 3
 )
 
 // Parse парсит конфигурационный файл и заполняет структуры конфига
